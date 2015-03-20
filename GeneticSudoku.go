@@ -8,27 +8,45 @@ import (
 var NUMBER_OF_COLS = 9
 var NUMBER_OF_ROWS = 9
 
+// Whenever a random gene or mutation occurs, how many chances should there be that the number will UNASSIGNED?
+var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 6
+
 func main() {
 
 	rand.Seed(int64(time.Now().Unix()))
 
-	gene := getRandomGene()
+	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/board.txt")
+	gene := getRandomGene(startBoard)
 
 	b := getBoardFromGene(gene)
+
 	b.Print()
 
 }
 
-// Generates a random gene sequence
-func getRandomGene() (gene []string) {
+// Generates a random gene sequence that represents a possible partial solution to the given board
+// TODO Non-Recursive Solution
+func getRandomGene(b Board) (gene []string) {
 
 	gene = make([]string, NUMBER_OF_COLS*NUMBER_OF_ROWS)
-	for i := range gene {
 
-		r := random(1, 9)
-		gene[i] = numToBitString(r)
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			if b.Get(r, c) == UNASSIGNED {
+				rand := random(1, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+				gene[c+(r*9)] = numToBitString(rand)
+			} else {
+				gene[c+(r*9)] = numToBitString(b.Get(r, c))
+			}
+		}
 	}
-	return
+
+	if getBoardFromGene(gene).PossibleBoard() {
+		return gene
+	} else {
+		return getRandomGene(b)
+	}
+
 }
 
 // Given a specific gene, will get the board for that gene
@@ -46,8 +64,6 @@ func getBoardFromGene(gene []string) Board {
 			index++
 		}
 	}
-
-	board.Print()
 
 	return board
 }
@@ -79,7 +95,7 @@ func bitStringToNum(s string) int {
 	case "1001":
 		return 9
 	default:
-		return -1
+		return 0
 	}
 }
 
