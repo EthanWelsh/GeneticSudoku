@@ -15,7 +15,7 @@ func main() {
 
 	rand.Seed(int64(time.Now().Unix()))
 
-	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/board.txt")
+	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/boards/board.txt")
 	gene := getRandomGene(startBoard)
 
 	b := getBoardFromGene(gene)
