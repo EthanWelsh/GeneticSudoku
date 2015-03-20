@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"io/ioutil"
+	"strconv"
+	"unicode"
+)
 
 var UNASSIGNED int = 0
 
@@ -28,6 +33,28 @@ func Init() Board {
 	}
 
 	return new_board
+}
+
+func BoardParser(filename string) (board Board) {
+	board = Init()
+	data, _ := ioutil.ReadFile(filename)
+	counter := 0
+	row := 0
+	col := 0
+	for counter < len(data) {
+		if unicode.IsDigit(rune(data[counter])) {
+			board.board[row][col], _ = strconv.Atoi(string(data[counter]))
+			col++
+		} else if data[counter] == '\n' {
+			row++
+			col = 0
+		} else if data[counter] == '-' {
+			board.board[row][col] = UNASSIGNED
+			col++
+		}
+		counter++
+	}
+	return
 }
 
 // Self describing!
@@ -107,7 +134,7 @@ func (b *Board) uniqueBox(possible_num int, pos Position) bool {
 }
 
 // PossibleBoard returns whether the board is solveable
-func (b *Board) PossibleBoard() bool {
+func (b Board) PossibleBoard() bool {
 	for i, row := range b.board {
 		for j, cell := range row {
 			if cell == UNASSIGNED && len(b.PossibleCells(Position{i, j})) == 0 {
@@ -156,4 +183,12 @@ func (b *Board) Print() {
 		}
 		fmt.Println()
 	}
+}
+
+func (b *Board) Get(r int, c int) int {
+	return b.board[r][c]
+}
+
+func (b *Board) Set(r int, c int, value int) {
+	b.board[r][c] = value
 }
