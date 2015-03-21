@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-var NUMBER_OF_COLS = 9
-var NUMBER_OF_ROWS = 9
+const NUMBER_OF_COLS = 9
+const NUMBER_OF_ROWS = 9
 
 // Whenever a random gene or mutation occurs, how many chances should there be that the number will UNASSIGNED?
 var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 6
@@ -20,7 +20,7 @@ func main() {
 
 	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/boards/board.txt")
 
-	population := make([][]string, POPULATION_SIZE)
+	population := make([]Gene, POPULATION_SIZE)
 
 	for i := range population {
 		population[i] = getRandomGene(startBoard)
@@ -32,39 +32,15 @@ func main() {
 
 }
 
-// Generates a random gene sequence that represents a possible partial solution to the given board
-// TODO Non-Recursive Solution
-func getRandomGene(b Board) (gene []string) {
-
-	gene = make([]string, NUMBER_OF_COLS*NUMBER_OF_ROWS)
-
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			if b.Get(r, c) == UNASSIGNED {
-				rand := random(1, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
-				gene[c+(r*9)] = numToBitString(rand)
-			} else {
-				gene[c+(r*9)] = numToBitString(b.Get(r, c))
-			}
-		}
-	}
-
-	if getBoardFromGene(gene).PossibleBoard() {
-		return gene
-	} else {
-		return getRandomGene(b)
-	}
-}
-
 // Given a specific gene, will get the board for that gene
-func getBoardFromGene(gene []string) Board {
+func getBoardFromGene(gene Gene) Board {
 
 	board := Init()
 	var index int
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
-			board.Set(r, c, bitStringToNum(gene[index]))
+			board.Set(r, c, bitStringToNum(gene.gene[index]))
 			index++
 		}
 	}
