@@ -8,6 +8,7 @@ import (
 )
 
 var UNASSIGNED int = 0
+var COMPLETE_REWARD = 3
 
 type Board struct {
 	board [9][9]int
@@ -16,11 +17,6 @@ type Board struct {
 type Position struct {
 	row int
 	col int
-}
-
-func (pos *Position) Set(r int, c int) {
-	pos.row = r
-	pos.col = c
 }
 
 // initializes a blank, unassigned sudoku board.
@@ -57,37 +53,43 @@ func BoardParser(filename string) (board Board) {
 	return
 }
 
-// Self describing!
-func (b *Board) Clone() Board {
-	new_board := Board{}
-	for i, _ := range b.board {
-		for j, _ := range b.board[i] {
-			new_board.board[i][j] = b.board[i][j]
-		}
-	}
+// Fitness function for grading a board
+//    Scoring Criteria | Score    |
+//	  -----------------------------
+//	  Assigned Square  |        1 |
+//    Unique row 	   |		3 |
+//	  Unique column    |        3 |
+//	  Unique box       |        3 |
 
-	return new_board
-}
+func (b *Board) Grade() (score int) {
 
-// Assigns a cell the given number, returns a new board because functional programming.
-func (b *Board) Assign(pos Position, num int) Board {
-	new_board := b.Clone()
-	new_board.board[pos.row][pos.col] = num
-	return new_board
-}
-
-// Checks to see if all cells have an assigned value. Complete =/= Correct.
-// TODO: Make an IsCorrect function dumby.
-func (b *Board) IsComplete() bool {
-	for _, row := range b.board {
-		for _, cell := range row {
-			if cell == UNASSIGNED {
-				return false
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			if b.Get(r, c) != UNASSIGNED {
+				score++
 			}
 		}
 	}
 
-	return true
+	for i := 0; i < 9; i++ {
+		if b.isUniqueRow(i) {
+			score += COMPLETE_REWARD
+		}
+
+		if b.isUniqueColumn(i) {
+			score += COMPLETE_REWARD
+		}
+	}
+
+	for i := 0; i < 9; i += 3 {
+		for j := 0; j < 9; j += 3 {
+			if b.isUniqueBox(i, j) {
+				score += COMPLETE_REWARD
+			}
+		}
+	}
+
+	return
 }
 
 // A small utility function for checking if the row of a given board allows that number in it
@@ -102,6 +104,20 @@ func (b *Board) uniqueRows(possible_num int, row int) bool {
 	return true
 }
 
+// checks to see if given row is unique
+func (b *Board) isUniqueRow(r int) bool {
+	counter := make([]int, 9)
+
+	for c := 0; c < NUMBER_OF_COLS; c++ {
+
+		if b.Get(r, c) == 0 || counter[b.Get(r, c)-1] >= 1 {
+			return false
+		}
+		counter[b.Get(r, c)-1]++
+	}
+	return true
+}
+
 // Refer to uniqueRows, except columns
 func (b *Board) uniqueColumns(possible_num int, column int) bool {
 	for _, row := range b.board {
@@ -110,6 +126,20 @@ func (b *Board) uniqueColumns(possible_num int, column int) bool {
 				return false
 			}
 		}
+	}
+	return true
+}
+
+// checks to see if given column is unique
+func (b *Board) isUniqueColumn(c int) bool {
+	counter := make([]int, 9)
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+
+		if b.Get(r, c) == 0 || counter[b.Get(r, c)-1] >= 1 {
+			return false
+		}
+		counter[b.Get(r, c)-1]++
 	}
 	return true
 }
@@ -128,6 +158,32 @@ func (b *Board) uniqueBox(possible_num int, pos Position) bool {
 			if b.board[i][j] == possible_num {
 				return false
 			}
+		}
+	}
+	return true
+}
+
+// checks to see if given box is unique
+func (b *Board) isUniqueBox(row int, col int) bool {
+
+	counter := make([]int, 9)
+
+	starting_row := row
+	starting_col := col
+	ending_row := starting_row + 3
+	ending_col := starting_col + 3
+
+	for r := starting_row; r < ending_row; r++ {
+		for c := starting_col; c < ending_col; c++ {
+
+			if b.Get(r, c) == 0 {
+				return false
+			}
+			if counter[b.Get(r, c)-1] >= 1 {
+				return false
+			}
+
+			counter[b.Get(r, c)-1]++
 		}
 	}
 	return true
@@ -158,17 +214,22 @@ func (b *Board) PossibleCells(pos Position) (possibles []int) {
 	return possibles
 }
 
-// Finds the first {row, col} that is "empty" or unassigned
-func (board *Board) findUnassignedPosition() (position Position) {
-	for i, row := range board.board {
-		for j, cell := range row {
+// Checks to see if all cells have an assigned value. Complete =/= Correct.
+func (b *Board) IsComplete() bool {
+	for _, row := range b.board {
+		for _, cell := range row {
 			if cell == UNASSIGNED {
-				return Position{i, j}
+				return false
 			}
 		}
 	}
+	return true
+}
 
-	return Position{-1, -1}
+// Checks to see if the board represents a complete and correct solution
+func (b *Board) IsCorrect() bool {
+
+	return b.Grade() == 162
 }
 
 func (b *Board) Print() {
