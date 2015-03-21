@@ -8,13 +8,25 @@ const GENE_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
 const PROB_GRANULARITY = 100000
 const MATE_CHANCES = 100
 
+var scoreCache map[string]int
+
 type Gene struct {
 	gene [GENE_SIZE]string
 }
 
 func (g *Gene) Score() int {
-	b := getBoardFromGene(g)
-	return b.Grade()
+
+	gs := g.String()
+
+	if val, ok := scoreCache[gs]; ok {
+		return val
+	} else {
+		b := getBoardFromGene(g)
+		grade := b.Grade()
+		scoreCache[gs] = grade
+		return grade
+	}
+
 }
 
 func (g *Gene) Mutate(chanceAtMutation float64) (mutationsMade int) {
@@ -75,7 +87,7 @@ func mateGenes(a *Gene, b *Gene) (res Gene) {
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
-func getRandomGene(b Board) (g Gene) {
+func getRandomGene(b *Board) (g Gene) {
 
 	firstIteration := true
 
@@ -146,4 +158,11 @@ func numToBitString(num int) string {
 	default:
 		return "0000"
 	}
+}
+
+func (g *Gene) String() (ret string) {
+	for _, s := range g.gene {
+		ret += s
+	}
+	return
 }

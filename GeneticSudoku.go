@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -17,6 +18,11 @@ var POPULATION_SIZE = 1000
 
 func main() {
 
+	scoreCache = make(map[string]int)
+	boardCache = make(map[string]Board)
+
+	defer un(trace("BASELINE"))
+
 	rand.Seed(int64(time.Now().Unix()))
 
 	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/boards/board.txt")
@@ -24,23 +30,23 @@ func main() {
 	population := make([]Gene, POPULATION_SIZE)
 
 	for i := range population {
-		population[i] = getRandomGene(startBoard)
+		population[i] = getRandomGene(&startBoard)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		avg, max, min := getPopulationStats(population)
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i, avg, max, min)
-		population = evolve(population, 10, .001)
+		evolve(population, 10, .001)
 	}
 
 }
 
-func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene {
+func evolve(population []Gene, iterations int, chanceAtMutation float64) {
 
 	mutationsMade := 0
 
 	for i := 0; i < iterations; i++ {
-		population = getNextGeneration(population)
+		getNextGeneration(&population)
 
 		for i := range population {
 			population[i].Mutate(chanceAtMutation)
@@ -48,14 +54,12 @@ func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene 
 	}
 
 	fmt.Println("--", mutationsMade, "--")
-
-	return population
 }
 
-func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
-	var randomGeneSelector Spinner
+func getNextGeneration(oldPopulation *[]Gene) (newPopulation []Gene) {
 
-	randomGeneSelector.addOptions(oldPopulation)
+	var randomGeneSelector Spinner
+	randomGeneSelector.addOptions(*oldPopulation)
 
 	newPopulation = make([]Gene, POPULATION_SIZE)
 
@@ -99,23 +103,44 @@ func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64)
 
 }
 
+var boardCache map[string]Board
+
 // Given a specific gene, will get the board for that gene
 func getBoardFromGene(gene *Gene) Board {
 
-	board := Init()
-	var index int
+	gs := gene.String()
 
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			board.Set(r, c, bitStringToNum(gene.gene[index]))
-			index++
+	if val, ok := boardCache[gs]; ok {
+		return val
+	} else {
+		board := Init()
+		var index int
+
+		for r := 0; r < NUMBER_OF_ROWS; r++ {
+			for c := 0; c < NUMBER_OF_COLS; c++ {
+				board.Set(r, c, bitStringToNum(gene.gene[index]))
+				index++
+			}
 		}
-	}
 
-	return board
+		boardCache[gs] = board
+
+		return board
+	}
 }
 
 // Generates a random number between min and max (inclusive)
 func random(min int, max int) int {
 	return rand.Intn(max) + min
+}
+
+func trace(s string) (string, time.Time) {
+	log.Println("START:", s)
+
+	return s, time.Now()
+}
+
+func un(s string, startTime time.Time) {
+	endTime := time.Now()
+	log.Println("  END:", s, "ElapsedTime in seconds:", endTime.Sub(startTime))
 }
