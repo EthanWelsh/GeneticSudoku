@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -26,9 +27,67 @@ func main() {
 		population[i] = getRandomGene(startBoard)
 	}
 
-	b := getBoardFromGene(population[0])
-	b.Print()
-	fmt.Println(b.Grade())
+	fmt.Println(getPopulationStats(population))
+	population = evolve(population, 100)
+	fmt.Println(getPopulationStats(population))
+
+}
+
+func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene {
+
+	for i := 0; i < iterations; i++ {
+		population = getNextGeneration(population)
+	}
+
+	// TODO Add mutation
+
+	return population
+}
+
+func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
+	var randomGeneSelector Spinner
+
+	randomGeneSelector.addOptions(oldPopulation)
+
+	newPopulation = make([]Gene, POPULATION_SIZE)
+
+	for i := range newPopulation {
+
+		phenotypeA := randomGeneSelector.Spin()
+		phenotypeB := randomGeneSelector.Spin()
+
+		newPopulation[i] = mateGenes(phenotypeA, phenotypeB)
+	}
+
+	return
+}
+
+func getPopulationStats(population []Gene) (avg uint64, max uint64, min uint64) {
+
+	var total uint64 = 0
+	var geneScore uint64 = 0
+
+	max = 0
+	min = math.MaxUint64
+
+	for _, gene := range population {
+
+		geneScore = uint64(gene.Score())
+
+		total += geneScore
+
+		if geneScore > max {
+			max = geneScore
+		}
+
+		if geneScore < min {
+			min = geneScore
+		}
+	}
+
+	avg = total / uint64(len(population))
+
+	return
 
 }
 
