@@ -9,18 +9,22 @@ import (
 )
 
 const (
-	ITERATIONS                        = 100
-	STEPS_PER_ITERATION               = 100
-	CHANCE_TO_MODIFY_A_GENE           = .0001
-	UNASSIGNED                        = 0
-	NUMBER_OF_ROWS                    = 9
-	NUMBER_OF_COLS                    = 9
-	NUMBER_OF_BOXES                   = 9
-	CHROMOSOME_SIZE                   = NUMBER_OF_ROWS * NUMBER_OF_COLS
+	CHANCE_TO_MODIFY_A_GENE           = .01
 	POPULATION_SIZE                   = 1000
 	NUMBER_OF_CHANCES_FOR_UNASSIGNED  = 5 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 	MATE_MAX_RETRIES                  = 10
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT = 3
+	ITERATIONS                        = 100
+	STEPS_PER_ITERATION               = 100
+	AVAILABLE_MODIFIER                = 3
+
+	CHROMOSOME_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
+
+	NUMBER_OF_ROWS  = 9
+	NUMBER_OF_COLS  = 9
+	NUMBER_OF_BOXES = 9
+
+	UNASSIGNED = 0
 )
 
 var boardCache map[string]Board
@@ -29,7 +33,7 @@ func main() {
 
 	rand.Seed(int64(time.Now().UnixNano()))
 
-	scoreCache = make(map[string]int)
+	scoreCache = make(map[string]float64)
 	boardCache = make(map[string]Board)
 
 	defer un(trace("BASELINE"))
@@ -49,7 +53,7 @@ func main() {
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
 		population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MODIFY_A_GENE)
 
-		popMax := 0
+		popMax := 0.0
 		popMaxInt := 0
 
 		for j, c := range population {

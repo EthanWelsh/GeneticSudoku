@@ -7,7 +7,7 @@ import (
 const SPOTS_ON_WHEEL = 100000
 
 type Spinner struct {
-	score       []int
+	score       []float64
 	wheel       [SPOTS_ON_WHEEL]int
 	chromosomes []Chromosome
 }
@@ -17,7 +17,7 @@ func (s *Spinner) addOptions(c []Chromosome) {
 
 	s.chromosomes = c
 
-	score := make([]int, len(c))
+	score := make([]float64, len(c))
 
 	var total float64
 

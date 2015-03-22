@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 	"unicode"
@@ -54,7 +55,7 @@ func BoardParser(filename string) (board Board) {
 }
 
 // Grade the given board on its completion
-func (b *Board) Grade() (score int) {
+func (b *Board) Grade() (score float64) {
 
 	//    Scoring Criteria | Score    |
 	//    -----------------------------
@@ -63,14 +64,33 @@ func (b *Board) Grade() (score int) {
 	//    Unique Column    |        3 |
 	//    Unique Box       |        3 |
 
+	numberOfAvailablePositions := 0
+	numberOfUnassignedPositions := 0
+	minimumNumberOfAvailablePositions := math.MaxInt64
+
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 			// Give a point for every box that is filled in
 			if b.Get(r, c) != UNASSIGNED {
 				score++
+			} else {
+				numberOfAvailablePositions += len(b.PossibleCells(r, c))
+				numberOfUnassignedPositions++
+
+				if numberOfAvailablePositions == 0 {
+					return 0
+				} else if numberOfAvailablePositions < minimumNumberOfAvailablePositions {
+					minimumNumberOfAvailablePositions = numberOfAvailablePositions
+				}
 			}
 		}
 	}
+
+	// TODO factor in minimumNumberOfAvailablePositions
+
+	// Add a bonus for the average number of available positions for each unassigned spot in the board
+	bonusForAverageAvailableOptionsPerPosition := ((float64(numberOfAvailablePositions) / float64(numberOfUnassignedPositions)) * AVAILABLE_MODIFIER)
+	score += bonusForAverageAvailableOptionsPerPosition
 
 	for i := 0; i < 9; i++ {
 

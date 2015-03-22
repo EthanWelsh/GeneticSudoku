@@ -1,13 +1,13 @@
 package main
 
-var scoreCache map[string]int
+var scoreCache map[string]float64
 
 type Chromosome struct {
 	genes [CHROMOSOME_SIZE]string
 }
 
 // Fitness function used to determine the degree of completion of the board
-func (c Chromosome) Score() int {
+func (c Chromosome) Score() float64 {
 	gs := c.String()
 
 	if val, ok := scoreCache[gs]; ok { // cache hit
@@ -93,7 +93,7 @@ func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
-func GetRandomChromosome(b *Board) (c Chromosome) {
+func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 
 	cpy := b.Clone()
 
@@ -116,16 +116,16 @@ func GetRandomChromosome(b *Board) (c Chromosome) {
 					valueToAdd = 0
 				}
 
-				c.genes[c+(r*9)] = NumToBitString(valueToAdd)
+				chromosome.genes[c+(r*9)] = NumToBitString(valueToAdd)
 				cpy.Set(r, c, valueToAdd)
 
 			} else {
-				c.genes[c+(r*9)] = NumToBitString(b.Get(r, c))
+				chromosome.genes[c+(r*9)] = NumToBitString(b.Get(r, c))
 			}
 		}
 	}
 
-	return c
+	return chromosome
 }
 
 // Given a bit string, will provide the number which maps to that bit string
