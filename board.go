@@ -52,7 +52,7 @@ func (b *Board) Grade() (score int) {
 	//    Scoring Criteria | Score    |
 	//	  -----------------------------
 	//	  Assigned Square  |        1 |
-	//    Unique Row 	   |		3 |
+	//    Unique Row       |        3 |
 	//	  Unique Column    |        3 |
 	//	  Unique Box       |        3 |
 
