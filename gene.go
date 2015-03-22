@@ -14,7 +14,7 @@ type Gene struct {
 	gene [GENE_SIZE]string
 }
 
-func (g *Gene) Score() int {
+func (g Gene) Score() int {
 
 	gs := g.String()
 
@@ -29,50 +29,25 @@ func (g *Gene) Score() int {
 
 }
 
-func (g *Gene) Mutate(chanceAtMutation float64) (mutationsMade int) {
+func (g Gene) Mutate(chanceAtMutation float64) (mutationsMade int) {
 
 	if chanceAtMutation == 0 {
 		return 0
 	}
 
-	for i, _ := range g.gene {
-		chanceAtMutation = chanceAtMutation * PROB_GRANULARITY
-		r := random(0, PROB_GRANULARITY)
-
-		if float64(r) < chanceAtMutation { // time to mutate!
-
-			temp := *g
-			rand := random(1, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
-			g.gene[i] = numToBitString(rand)
-
-			if !getBoardFromGene(g).PossibleBoard() {
-				g = &temp
-			} else {
-				mutationsMade++
-			}
-
-		}
-	}
+	// TODO TODO TODO
 
 	return
 }
 
-func mateGenes(a *Gene, b *Gene) (res Gene) {
+func mateGenes(a Gene, b Gene) (res Gene) {
 
 	firstIteration := true
 
-	for i := 0; firstIteration || !getBoardFromGene(&res).PossibleBoard(); i++ {
-
-		//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
-		if i >= MATE_CHANCES {
-			if a.Score() > b.Score() {
-				return *a
-			} else {
-				return *b
-			}
-		}
+	for i := 0; firstIteration || !getBoardFromGene(res).PossibleBoard(); i++ {
 
 		firstIteration = false
+
 		r := random(1, GENE_SIZE)
 
 		for i := 0; i < r; i++ {
@@ -81,9 +56,19 @@ func mateGenes(a *Gene, b *Gene) (res Gene) {
 		for i := r; i < GENE_SIZE; i++ {
 			res.gene[i] = b.gene[i]
 		}
+
+		//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
+		if i >= MATE_CHANCES {
+			if a.Score() > b.Score() {
+				return a
+			} else {
+				return b
+			}
+		}
+
 	}
 
-	return
+	return res
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
@@ -91,7 +76,7 @@ func getRandomGene(b *Board) (g Gene) {
 
 	firstIteration := true
 
-	for firstIteration || !getBoardFromGene(&g).PossibleBoard() {
+	for firstIteration || !getBoardFromGene(g).PossibleBoard() {
 		firstIteration = false
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {

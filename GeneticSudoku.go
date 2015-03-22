@@ -18,12 +18,12 @@ var POPULATION_SIZE = 1000
 
 func main() {
 
+	rand.Seed(int64(time.Now().Unix()))
+
 	scoreCache = make(map[string]int)
 	boardCache = make(map[string]Board)
 
 	defer un(trace("BASELINE"))
-
-	rand.Seed(int64(time.Now().Unix()))
 
 	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/boards/board.txt")
 
@@ -33,33 +33,33 @@ func main() {
 		population[i] = getRandomGene(&startBoard)
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		avg, max, min := getPopulationStats(population)
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i, avg, max, min)
-		evolve(population, 10, .001)
+		population = evolve(population, 10, 0)
+
 	}
 
 }
 
-func evolve(population []Gene, iterations int, chanceAtMutation float64) {
-
-	mutationsMade := 0
+func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene {
 
 	for i := 0; i < iterations; i++ {
-		getNextGeneration(&population)
+		population = getNextGeneration(population)
 
 		for i := range population {
 			population[i].Mutate(chanceAtMutation)
 		}
 	}
 
-	fmt.Println("--", mutationsMade, "--")
+	return population
+
 }
 
-func getNextGeneration(oldPopulation *[]Gene) (newPopulation []Gene) {
+func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
 
 	var randomGeneSelector Spinner
-	randomGeneSelector.addOptions(*oldPopulation)
+	randomGeneSelector.addOptions(oldPopulation)
 
 	newPopulation = make([]Gene, POPULATION_SIZE)
 
@@ -68,10 +68,11 @@ func getNextGeneration(oldPopulation *[]Gene) (newPopulation []Gene) {
 		phenotypeA := randomGeneSelector.Spin()
 		phenotypeB := randomGeneSelector.Spin()
 
-		newPopulation[i] = mateGenes(&phenotypeA, &phenotypeB)
+		newPopulation[i] = mateGenes(phenotypeA, phenotypeB)
+
 	}
 
-	return
+	return newPopulation
 }
 
 func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64) {
@@ -106,7 +107,7 @@ func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64)
 var boardCache map[string]Board
 
 // Given a specific gene, will get the board for that gene
-func getBoardFromGene(gene *Gene) Board {
+func getBoardFromGene(gene Gene) Board {
 
 	gs := gene.String()
 
