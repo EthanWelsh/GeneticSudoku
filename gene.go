@@ -4,15 +4,13 @@ import (
 //"fmt"
 )
 
-const GENE_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
-const MATE_MAX_RETRIES = 5
-
 var scoreCache map[string]int
 
 type Gene struct {
-	gene [GENE_SIZE]string
+	gene [CHROMOSOME_SIZE]string
 }
 
+// Fitness function used to determine the degree of completion of the board
 func (g Gene) Score() int {
 
 	gs := g.String()
@@ -28,6 +26,7 @@ func (g Gene) Score() int {
 
 }
 
+// Will randomly mutate random genes in a populations
 func Mutate(population []Gene, chanceToMutateGene float64) {
 
 	if chanceToMutateGene == 0 {
@@ -66,6 +65,7 @@ func Mutate(population []Gene, chanceToMutateGene float64) {
 	return
 }
 
+// Will perform a crossover operation between two genes
 func mateGenes(a Gene, b Gene) (res Gene) {
 
 	firstIteration := true
@@ -74,12 +74,12 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 
 		firstIteration = false
 
-		r := randomInt(1, GENE_SIZE)
+		r := randomInt(1, CHROMOSOME_SIZE)
 
 		for i := 0; i < r; i++ {
 			res.gene[i] = a.gene[i]
 		}
-		for i := r; i < GENE_SIZE; i++ {
+		for i := r; i < CHROMOSOME_SIZE; i++ {
 			res.gene[i] = b.gene[i]
 		}
 
@@ -184,6 +184,7 @@ func numToBitString(num int) string {
 	}
 }
 
+// Returns the string representation of a particular gene
 func (g *Gene) String() (ret string) {
 	for _, s := range g.gene {
 		ret += s

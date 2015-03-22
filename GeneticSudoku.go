@@ -8,13 +8,19 @@ import (
 	"time"
 )
 
-const NUMBER_OF_COLS = 9
-const NUMBER_OF_ROWS = 9
+const (
+	UNASSIGNED                        = 0
+	NUMBER_OF_ROWS                    = 9
+	NUMBER_OF_COLS                    = 9
+	NUMBER_OF_BOXES                   = 9
+	CHROMOSOME_SIZE                   = NUMBER_OF_ROWS * NUMBER_OF_COLS
+	POPULATION_SIZE                   = 1000
+	NUMBER_OF_CHANCES_FOR_UNASSIGNED  = 5 // When a random gene or mutation occurs, how many chances should there be that the number will be UNASSIGNED?
+	MATE_MAX_RETRIES                  = 10
+	REWARD_FOR_COMPLETE_BOARD_ELEMENT = 3
+)
 
-// Whenever a random gene or mutation occurs, how many chances should there be that the number will UNASSIGNED?
-var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 5
-
-var POPULATION_SIZE = 1000
+var boardCache map[string]Board
 
 func main() {
 
@@ -55,6 +61,7 @@ func main() {
 	}
 }
 
+// Performs reproduction and mutations for a given number of iterations and returns the resulting population
 func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene {
 
 	for i := 0; i < iterations; i++ {
@@ -67,6 +74,7 @@ func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene 
 
 }
 
+// Performs reproduction and returns the resulting population
 func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
 
 	var randomGeneSelector Spinner
@@ -86,6 +94,7 @@ func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
 	return newPopulation
 }
 
+// Provide the average, maximum, and minimum board scores in the population
 func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64) {
 
 	var total uint64 = 0
@@ -115,8 +124,6 @@ func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64)
 
 }
 
-var boardCache map[string]Board
-
 // Given a specific gene, will get the board for that gene
 func getBoardFromGene(gene Gene) Board {
 
@@ -141,22 +148,25 @@ func getBoardFromGene(gene Gene) Board {
 	}
 }
 
-// Generates a random number between min and max (inclusive)
+// Generates a random integer between min and max (inclusive)
 func randomInt(min int, max int) int {
 	return rand.Intn(max) + min
 }
 
+// Generates a random float between min and max (inclusive)
 func randomFloat(min float64, max float64) float64 {
 
 	return rand.Float64()*(max-min) + min
 }
 
+// temporary timing function
 func trace(s string) (string, time.Time) {
 	log.Println("START:", s)
 
 	return s, time.Now()
 }
 
+// temporary timing function
 func un(s string, startTime time.Time) {
 	endTime := time.Now()
 	log.Println("  END:", s, "ElapsedTime in seconds:", endTime.Sub(startTime))

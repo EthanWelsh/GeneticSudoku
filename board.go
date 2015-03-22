@@ -7,9 +7,6 @@ import (
 	"unicode"
 )
 
-var UNASSIGNED int = 0
-var COMPLETE_REWARD = 3
-
 type Board struct {
 	board [9][9]int
 }
@@ -26,6 +23,7 @@ func Init() Board {
 	return new_board
 }
 
+// Reads a board in from file and returns it
 func BoardParser(filename string) (board Board) {
 	board = Init()
 	data, _ := ioutil.ReadFile(filename)
@@ -48,15 +46,15 @@ func BoardParser(filename string) (board Board) {
 	return
 }
 
-// Fitness function for grading a board
-//    Scoring Criteria | Score    |
-//	  -----------------------------
-//	  Assigned Square  |        1 |
-//    Unique row 	   |		3 |
-//	  Unique column    |        3 |
-//	  Unique box       |        3 |
-
+// Grade the given board on its completion
 func (b *Board) Grade() (score int) {
+
+	//    Scoring Criteria | Score    |
+	//	  -----------------------------
+	//	  Assigned Square  |        1 |
+	//    Unique Row 	   |		3 |
+	//	  Unique Column    |        3 |
+	//	  Unique Box       |        3 |
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
@@ -68,18 +66,18 @@ func (b *Board) Grade() (score int) {
 
 	for i := 0; i < 9; i++ {
 		if b.isUniqueRow(i) {
-			score += COMPLETE_REWARD
+			score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 		}
 
 		if b.isUniqueColumn(i) {
-			score += COMPLETE_REWARD
+			score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 		}
 	}
 
 	for i := 0; i < 9; i += 3 {
 		for j := 0; j < 9; j += 3 {
 			if b.isUniqueBox(i, j) {
-				score += COMPLETE_REWARD
+				score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 			}
 		}
 	}
@@ -88,8 +86,6 @@ func (b *Board) Grade() (score int) {
 }
 
 // A small utility function for checking if the row of a given board allows that number in it
-// e.g. a potential row configuration:
-//         1 2 3 4 - 5 6 7 9   -- if 8 is passed in, then returns true. If 9, false
 func (b *Board) uniqueRows(possible_num int, row int) bool {
 	for _, cell := range b.board[row] {
 		if possible_num == cell {
@@ -140,7 +136,6 @@ func (b *Board) isUniqueColumn(c int) bool {
 }
 
 // A small utility function for checking if the box of a cell is unique based on the cells around it.
-// Look at sudoku rules for more information
 func (b *Board) uniqueBox(possible_num int, row int, col int) bool {
 	// check the box using math!!!
 	starting_row := (row / 3) * 3
@@ -196,8 +191,7 @@ func (b Board) PossibleBoard() bool {
 	return true
 }
 
-// PossibleCells returns a slice of possible numbers that are allowed to be assigned
-// in a board at the position input
+// Returns a slice of possible numbers that are allowed to be assigned in a board at the given position
 func (b *Board) PossibleCells(row int, col int) (possibles []int) {
 	possibles = []int{}
 	for i := 1; i <= 9; i++ {
@@ -209,6 +203,7 @@ func (b *Board) PossibleCells(row int, col int) (possibles []int) {
 	return possibles
 }
 
+// Checks to see if a given board violates any of the rules of Sudoku
 func (b Board) IsWrong() bool {
 
 	for i := 0; i < 9; i++ {
@@ -245,10 +240,32 @@ func (b *Board) IsComplete() bool {
 
 // Checks to see if the board represents a complete and correct solution
 func (b *Board) IsCorrect() bool {
-
-	return b.Grade() == (NUMBER_OF_ROWS*NUMBER_OF_COLS)+(COMPLETE_REWARD*NUMBER_OF_ROWS)+(COMPLETE_REWARD*NUMBER_OF_COLS)+(COMPLETE_REWARD*9)
+	return b.Grade() == (NUMBER_OF_ROWS*NUMBER_OF_COLS)+(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)
 }
 
+// Return deep copy of given board
+func (b *Board) Clone() Board {
+	new_board := Board{}
+	for i, _ := range b.board {
+		for j, _ := range b.board[i] {
+			new_board.board[i][j] = b.board[i][j]
+		}
+	}
+
+	return new_board
+}
+
+// Returns the integer at the given location of the board
+func (b *Board) Get(r int, c int) int {
+	return b.board[r][c]
+}
+
+// Sets a given location on the board to a certain integer
+func (b *Board) Set(r int, c int, value int) {
+	b.board[r][c] = value
+}
+
+// Prints the board!
 func (b *Board) Print() {
 	for _, row := range b.board {
 		for _, cell := range row {
@@ -261,23 +278,4 @@ func (b *Board) Print() {
 		}
 		fmt.Println()
 	}
-}
-
-func (b *Board) Get(r int, c int) int {
-	return b.board[r][c]
-}
-
-func (b *Board) Set(r int, c int, value int) {
-	b.board[r][c] = value
-}
-
-func (b *Board) Clone() Board {
-	new_board := Board{}
-	for i, _ := range b.board {
-		for j, _ := range b.board[i] {
-			new_board.board[i][j] = b.board[i][j]
-		}
-	}
-
-	return new_board
 }

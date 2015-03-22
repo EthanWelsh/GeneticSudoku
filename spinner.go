@@ -10,7 +10,7 @@ type Spinner struct {
 	genes []Gene
 }
 
-// add genes to the spinner to be randomly selected from later
+// Add genes to the spinner to be randomly selected from later
 func (s *Spinner) addOptions(g []Gene) {
 
 	s.genes = g
@@ -40,6 +40,7 @@ func (s *Spinner) addOptions(g []Gene) {
 	}
 }
 
+// Randomly picks a gene to reproduce, giving preference to those genes with a high fitness value
 func (s *Spinner) Spin() Gene {
 
 	randomIndexInWheel := randomInt(0, len(s.wheel))
@@ -49,6 +50,7 @@ func (s *Spinner) Spin() Gene {
 	return randomGene
 }
 
+// Self-explanatory!
 func Round(val float64, roundOn float64, places int) (newVal float64) {
 	var round float64
 	pow := math.Pow(10, float64(places))
