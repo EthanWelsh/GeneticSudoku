@@ -15,7 +15,7 @@ const (
 	NUMBER_OF_BOXES                   = 9
 	CHROMOSOME_SIZE                   = NUMBER_OF_ROWS * NUMBER_OF_COLS
 	POPULATION_SIZE                   = 1000
-	NUMBER_OF_CHANCES_FOR_UNASSIGNED  = 5 // When a random gene or mutation occurs, how many chances should there be that the number will be UNASSIGNED?
+	NUMBER_OF_CHANCES_FOR_UNASSIGNED  = 5 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 	MATE_MAX_RETRIES                  = 10
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT = 3
 )
@@ -33,10 +33,10 @@ func main() {
 
 	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/boards/board.txt")
 
-	population := make([]Gene, POPULATION_SIZE)
+	population := make([]Chromosome, POPULATION_SIZE)
 
 	for i := range population {
-		population[i] = getRandomGene(&startBoard)
+		population[i] = GetRandomChromosome(&startBoard)
 	}
 
 	for i := 0; i < 100; i++ {
@@ -55,14 +55,14 @@ func main() {
 			}
 		}
 
-		b := getBoardFromGene(population[popMaxInt])
+		b := getBoardFromChromosome(population[popMaxInt])
 		b.Print()
 
 	}
 }
 
 // Performs reproduction and mutations for a given number of iterations and returns the resulting population
-func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene {
+func evolve(population []Chromosome, iterations int, chanceAtMutation float64) []Chromosome {
 
 	for i := 0; i < iterations; i++ {
 		population = getNextGeneration(population)
@@ -75,19 +75,19 @@ func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene 
 }
 
 // Performs reproduction and returns the resulting population
-func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
+func getNextGeneration(oldPopulation []Chromosome) (newPopulation []Chromosome) {
 
-	var randomGeneSelector Spinner
-	randomGeneSelector.addOptions(oldPopulation)
+	var randomChromosomeSelector Spinner
+	randomChromosomeSelector.addOptions(oldPopulation)
 
-	newPopulation = make([]Gene, POPULATION_SIZE)
+	newPopulation = make([]Chromosome, POPULATION_SIZE)
 
 	for i := range newPopulation {
 
-		phenotypeA := randomGeneSelector.Spin()
-		phenotypeB := randomGeneSelector.Spin()
+		phenotypeA := randomChromosomeSelector.Spin()
+		phenotypeB := randomChromosomeSelector.Spin()
 
-		newPopulation[i] = mateGenes(phenotypeA, phenotypeB)
+		newPopulation[i] = MateChromosome(phenotypeA, phenotypeB)
 
 	}
 
@@ -95,26 +95,26 @@ func getNextGeneration(oldPopulation []Gene) (newPopulation []Gene) {
 }
 
 // Provide the average, maximum, and minimum board scores in the population
-func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64) {
+func getPopulationStats(population []Chromosome) (avg float64, max uint64, min uint64) {
 
 	var total uint64 = 0
-	var geneScore uint64 = 0
+	var chromosomeScore uint64 = 0
 
 	max = 0
 	min = math.MaxUint64
 
-	for _, gene := range population {
+	for _, chromosome := range population {
 
-		geneScore = uint64(gene.Score())
+		chromosomeScore = uint64(chromosome.Score())
 
-		total += geneScore
+		total += chromosomeScore
 
-		if geneScore > max {
-			max = geneScore
+		if chromosomeScore > max {
+			max = chromosomeScore
 		}
 
-		if geneScore < min {
-			min = geneScore
+		if chromosomeScore < min {
+			min = chromosomeScore
 		}
 	}
 
@@ -124,10 +124,10 @@ func getPopulationStats(population []Gene) (avg float64, max uint64, min uint64)
 
 }
 
-// Given a specific gene, will get the board for that gene
-func getBoardFromGene(gene Gene) Board {
+// Given a specific chromosome, will get the board for that chromosome
+func getBoardFromChromosome(chromosome Chromosome) Board {
 
-	gs := gene.String()
+	gs := chromosome.String()
 
 	if val, ok := boardCache[gs]; ok {
 		return val
@@ -137,7 +137,7 @@ func getBoardFromGene(gene Gene) Board {
 
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {
-				board.Set(r, c, bitStringToNum(gene.gene[index]))
+				board.Set(r, c, BitStringToNum(chromosome.genes[index]))
 				index++
 			}
 		}

@@ -5,23 +5,23 @@ import (
 )
 
 type Spinner struct {
-	score []int
-	wheel [1000]int
-	genes []Gene
+	score       []int
+	wheel       [1000]int
+	chromosomes []Chromosome
 }
 
-// Add genes to the spinner to be randomly selected from later
-func (s *Spinner) addOptions(g []Gene) {
+// Add chromosomes to the spinner to be randomly selected from later
+func (s *Spinner) addOptions(c []Chromosome) {
 
-	s.genes = g
+	s.chromosomes = c
 
-	score := make([]int, len(g))
+	score := make([]int, len(c))
 
 	var total float64
 
-	for i, gene := range g {
+	for i, chromosome := range c {
 
-		score[i] = gene.Score()
+		score[i] = chromosome.Score()
 		total += float64(score[i])
 	}
 
@@ -29,8 +29,8 @@ func (s *Spinner) addOptions(g []Gene) {
 	wheelPos := 0
 	j := 0
 
-	for i, geneScore := range score {
-		chance = Round(float64(geneScore)/total, 1, 3)
+	for i, chromosomeScore := range score {
+		chance = Round(float64(chromosomeScore)/total, 1, 3)
 		spotsOnWheel := int(chance * 1000)
 
 		for j = wheelPos; j < spotsOnWheel+wheelPos; j++ {
@@ -40,14 +40,14 @@ func (s *Spinner) addOptions(g []Gene) {
 	}
 }
 
-// Randomly picks a gene to reproduce, giving preference to those genes with a high fitness value
-func (s *Spinner) Spin() Gene {
+// Randomly picks a chromosomes to reproduce, giving preference to those chromosomes with a high fitness value
+func (s *Spinner) Spin() Chromosome {
 
 	randomIndexInWheel := randomInt(0, len(s.wheel))
-	indexOfGene := s.wheel[randomIndexInWheel]
-	randomGene := s.genes[indexOfGene]
+	indexOfChromosome := s.wheel[randomIndexInWheel]
+	randomChromosome := s.chromosomes[indexOfChromosome]
 
-	return randomGene
+	return randomChromosome
 }
 
 // Self-explanatory!

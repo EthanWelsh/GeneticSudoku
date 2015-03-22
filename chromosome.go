@@ -6,19 +6,18 @@ import (
 
 var scoreCache map[string]int
 
-type Gene struct {
-	gene [CHROMOSOME_SIZE]string
+type Chromosome struct {
+	genes [CHROMOSOME_SIZE]string
 }
 
 // Fitness function used to determine the degree of completion of the board
-func (g Gene) Score() int {
-
+func (g Chromosome) Score() int {
 	gs := g.String()
 
 	if val, ok := scoreCache[gs]; ok {
 		return val
 	} else {
-		b := getBoardFromGene(g)
+		b := getBoardFromChromosome(g)
 		grade := b.Grade()
 		scoreCache[gs] = grade
 		return grade
@@ -26,8 +25,8 @@ func (g Gene) Score() int {
 
 }
 
-// Will randomly mutate random genes in a populations
-func Mutate(population []Gene, chanceToMutateGene float64) {
+// Will randomly mutate random genes in random chromosomes within a given population
+func Mutate(population []Chromosome, chanceToMutateGene float64) {
 
 	if chanceToMutateGene == 0 {
 		return
@@ -40,7 +39,7 @@ func Mutate(population []Gene, chanceToMutateGene float64) {
 		modifiedChromosome := randomInt(0, len(population))
 		modifiedGene := randomInt(0, 81)
 
-		b := getBoardFromGene(population[modifiedChromosome])
+		b := getBoardFromChromosome(population[modifiedChromosome])
 
 		modifyRow := modifiedGene / NUMBER_OF_COLS
 		modifyCol := modifiedGene % NUMBER_OF_ROWS
@@ -59,28 +58,28 @@ func Mutate(population []Gene, chanceToMutateGene float64) {
 			valueToAdd = 0
 		}
 
-		population[modifiedChromosome].gene[modifiedGene] = numToBitString(valueToAdd)
+		population[modifiedChromosome].genes[modifiedGene] = NumToBitString(valueToAdd)
 	}
 
 	return
 }
 
-// Will perform a crossover operation between two genes
-func mateGenes(a Gene, b Gene) (res Gene) {
+// Will perform a crossover operation between two chromosomes
+func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 
 	firstIteration := true
 
-	for i := 0; firstIteration || getBoardFromGene(res).IsWrong(); i++ {
+	for i := 0; firstIteration || getBoardFromChromosome(res).IsWrong(); i++ {
 
 		firstIteration = false
 
 		r := randomInt(1, CHROMOSOME_SIZE)
 
 		for i := 0; i < r; i++ {
-			res.gene[i] = a.gene[i]
+			res.genes[i] = a.genes[i]
 		}
 		for i := r; i < CHROMOSOME_SIZE; i++ {
-			res.gene[i] = b.gene[i]
+			res.genes[i] = b.genes[i]
 		}
 
 		//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
@@ -97,7 +96,7 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
-func getRandomGene(b *Board) (g Gene) {
+func GetRandomChromosome(b *Board) (g Chromosome) {
 
 	cpy := b.Clone()
 
@@ -120,11 +119,11 @@ func getRandomGene(b *Board) (g Gene) {
 					valueToAdd = 0
 				}
 
-				g.gene[c+(r*9)] = numToBitString(valueToAdd)
+				g.genes[c+(r*9)] = NumToBitString(valueToAdd)
 				cpy.Set(r, c, valueToAdd)
 
 			} else {
-				g.gene[c+(r*9)] = numToBitString(b.Get(r, c))
+				g.genes[c+(r*9)] = NumToBitString(b.Get(r, c))
 			}
 		}
 	}
@@ -133,7 +132,7 @@ func getRandomGene(b *Board) (g Gene) {
 }
 
 // Given a bit string, will provide the number which maps to that bit string
-func bitStringToNum(s string) int {
+func BitStringToNum(s string) int {
 	switch s {
 	case "0001":
 		return 1
@@ -159,7 +158,7 @@ func bitStringToNum(s string) int {
 }
 
 // Given a num, will give the bit string that corresponds to that number
-func numToBitString(num int) string {
+func NumToBitString(num int) string {
 	switch num {
 	case 1:
 		return "0001"
@@ -184,9 +183,9 @@ func numToBitString(num int) string {
 	}
 }
 
-// Returns the string representation of a particular gene
-func (g *Gene) String() (ret string) {
-	for _, s := range g.gene {
+// Returns the string representation of a particular chromosome
+func (g *Chromosome) String() (ret string) {
+	for _, s := range g.genes {
 		ret += s
 	}
 	return
