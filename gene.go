@@ -5,8 +5,7 @@ import (
 )
 
 const GENE_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
-const PROB_GRANULARITY = 100000
-const MATE_CHANCES = 100
+const MATE_MAX_CHANCES = 100
 
 var scoreCache map[string]int
 
@@ -29,13 +28,21 @@ func (g Gene) Score() int {
 
 }
 
-func (g Gene) Mutate(chanceAtMutation float64) (mutationsMade int) {
+func Mutate(population []Gene, chanceToMutateGene float64) {
 
-	if chanceAtMutation == 0 {
+	if chanceToMutateGene == 0 {
 		return 0
 	}
 
-	// TODO TODO TODO
+	chanceToModifyChromosome := chanceToMutateGene * 81
+	chanceToModifyPopulation := (chanceToModifyChromosome * 1000) / ((chanceToModifyChromosome * 1000) + 1)
+
+	for randomFloat(0, 1) < chanceToModifyPopulation {
+		modifiedChromosome := randomInt(0, len(population))
+		modifiedGene := randomInt(0, 81)
+
+		population[modifiedChromosome].gene[modifiedGene] = numToBitString(randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED))
+	}
 
 	return
 }
@@ -48,7 +55,7 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 
 		firstIteration = false
 
-		r := random(1, GENE_SIZE)
+		r := randomInt(1, GENE_SIZE)
 
 		for i := 0; i < r; i++ {
 			res.gene[i] = a.gene[i]
@@ -58,7 +65,7 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 		}
 
 		//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
-		if i >= MATE_CHANCES {
+		if i >= MATE_MAX_CHANCES {
 			if a.Score() > b.Score() {
 				return a
 			} else {
@@ -81,7 +88,7 @@ func getRandomGene(b *Board) (g Gene) {
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {
 				if b.Get(r, c) == UNASSIGNED {
-					rand := random(1, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+					rand := randomInt(1, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
 					g.gene[c+(r*9)] = numToBitString(rand)
 				} else {
 					g.gene[c+(r*9)] = numToBitString(b.Get(r, c))

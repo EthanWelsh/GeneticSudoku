@@ -42,7 +42,7 @@ func (s *Spinner) addOptions(g []Gene) {
 
 func (s *Spinner) Spin() Gene {
 
-	randomIndexInWheel := random(0, len(s.wheel))
+	randomIndexInWheel := randomInt(0, len(s.wheel))
 	indexOfGene := s.wheel[randomIndexInWheel]
 	randomGene := s.genes[indexOfGene]
 

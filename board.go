@@ -229,7 +229,7 @@ func (b *Board) IsComplete() bool {
 // Checks to see if the board represents a complete and correct solution
 func (b *Board) IsCorrect() bool {
 
-	return b.Grade() == 162
+	return b.Grade() == (NUMBER_OF_ROWS*NUMBER_OF_COLS)+(COMPLETE_REWARD*NUMBER_OF_ROWS)+(COMPLETE_REWARD*NUMBER_OF_COLS)+(COMPLETE_REWARD*9)
 }
 
 func (b *Board) Print() {

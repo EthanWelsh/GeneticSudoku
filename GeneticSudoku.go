@@ -12,13 +12,13 @@ const NUMBER_OF_COLS = 9
 const NUMBER_OF_ROWS = 9
 
 // Whenever a random gene or mutation occurs, how many chances should there be that the number will UNASSIGNED?
-var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 6
+var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 3
 
 var POPULATION_SIZE = 1000
 
 func main() {
 
-	rand.Seed(int64(time.Now().Unix()))
+	rand.Seed(int64(time.Now().UnixNano()))
 
 	scoreCache = make(map[string]int)
 	boardCache = make(map[string]Board)
@@ -33,24 +33,21 @@ func main() {
 		population[i] = getRandomGene(&startBoard)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 		avg, max, min := getPopulationStats(population)
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i, avg, max, min)
-		population = evolve(population, 10, 0)
+		population = evolve(population, 100, .0001)
 
 	}
-
 }
 
 func evolve(population []Gene, iterations int, chanceAtMutation float64) []Gene {
 
 	for i := 0; i < iterations; i++ {
 		population = getNextGeneration(population)
-
-		for i := range population {
-			population[i].Mutate(chanceAtMutation)
-		}
 	}
+
+	Mutate(population, chanceAtMutation)
 
 	return population
 
@@ -131,8 +128,13 @@ func getBoardFromGene(gene Gene) Board {
 }
 
 // Generates a random number between min and max (inclusive)
-func random(min int, max int) int {
+func randomInt(min int, max int) int {
 	return rand.Intn(max) + min
+}
+
+func randomFloat(min float64, max float64) float64 {
+
+	return rand.Float64()*(max-min) + min
 }
 
 func trace(s string) (string, time.Time) {
