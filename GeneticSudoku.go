@@ -9,6 +9,8 @@ import (
 )
 
 const (
+	ITERATIONS                        = 100
+	STEPS_PER_ITERATION               = 100
 	UNASSIGNED                        = 0
 	NUMBER_OF_ROWS                    = 9
 	NUMBER_OF_COLS                    = 9
@@ -31,7 +33,7 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	startBoard := BoardParser("/Users/welshej/github/GeneticSudoku/src/main/boards/board.txt")
+	startBoard := BoardParser("src/main/boards/board.txt")
 
 	population := make([]Chromosome, POPULATION_SIZE)
 
@@ -39,10 +41,10 @@ func main() {
 		population[i] = GetRandomChromosome(&startBoard)
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < ITERATIONS; i++ {
 		avg, max, min := getPopulationStats(population)
-		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i, avg, max, min)
-		population = evolve(population, 100, .001)
+		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
+		population = evolve(population, STEPS_PER_ITERATION, .001)
 
 		popMax := 0
 		popMaxInt := 0

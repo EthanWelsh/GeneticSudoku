@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"unicode"
 )
@@ -26,7 +27,13 @@ func Init() Board {
 // Reads a board in from file and returns it
 func BoardParser(filename string) (board Board) {
 	board = Init()
-	data, _ := ioutil.ReadFile(filename)
+	data, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		fmt.Println("Could not find", filename)
+		os.Exit(0)
+	}
+
 	counter := 0
 	row := 0
 	col := 0
