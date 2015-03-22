@@ -41,7 +41,26 @@ func Mutate(population []Gene, chanceToMutateGene float64) {
 		modifiedChromosome := randomInt(0, len(population))
 		modifiedGene := randomInt(0, 81)
 
-		population[modifiedChromosome].gene[modifiedGene] = numToBitString(randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED))
+		b := getBoardFromGene(population[modifiedChromosome])
+
+		modifyRow := modifiedGene / NUMBER_OF_COLS
+		modifyCol := modifiedGene % NUMBER_OF_ROWS
+
+		possibilities := b.PossibleCells(modifyRow, modifyCol)
+
+		rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+
+		var valueToAdd int
+
+		if rand < len(possibilities) {
+
+			valueToAdd = possibilities[rand]
+
+		} else {
+			valueToAdd = 0
+		}
+
+		population[modifiedChromosome].gene[modifiedGene] = numToBitString(valueToAdd)
 	}
 
 	return
@@ -89,7 +108,7 @@ func getRandomGene(b *Board) (g Gene) {
 
 				possibilities := cpy.PossibleCells(r, c)
 
-				rand := randomInt(1, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+				rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
 
 				var valueToAdd int
 
