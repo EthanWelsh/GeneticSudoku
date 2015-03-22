@@ -51,10 +51,10 @@ func (b *Board) Grade() (score int) {
 
 	//    Scoring Criteria | Score    |
 	//	  -----------------------------
-	//	  Assigned Square  |        1 |
+	//    Assigned Square  |        1 |
 	//    Unique Row       |        3 |
-	//	  Unique Column    |        3 |
-	//	  Unique Box       |        3 |
+	//    Unique Column    |        3 |
+	//    Unique Box       |        3 |
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
