@@ -50,7 +50,7 @@ func BoardParser(filename string) (board Board) {
 func (b *Board) Grade() (score int) {
 
 	//    Scoring Criteria | Score    |
-	//	  -----------------------------
+	//    -----------------------------
 	//    Assigned Square  |        1 |
 	//    Unique Row       |        3 |
 	//    Unique Column    |        3 |
