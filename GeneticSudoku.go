@@ -118,7 +118,7 @@ func getBoardFromChromosome(chromosome Chromosome) Board {
 
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {
-				board.Set(r, c, BitStringToNum(chromosome.genes[index]))
+				board.Set(r, c, geneToNum(chromosome.genes[index]))
 				index++
 			}
 		}

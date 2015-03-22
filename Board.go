@@ -10,7 +10,7 @@ import (
 )
 
 type Board struct {
-	board [9][9]int
+	board [9][9]uint8
 }
 
 // initializes a blank, unassigned sudoku board.
@@ -40,7 +40,9 @@ func BoardParser(filename string) (board Board) {
 	col := 0
 	for counter < len(data) {
 		if unicode.IsDigit(rune(data[counter])) {
-			board.board[row][col], _ = strconv.Atoi(string(data[counter]))
+
+			num, _ := strconv.Atoi(string(data[counter]))
+			board.board[row][col] = uint8(num)
 			col++
 		} else if data[counter] == '\n' {
 			row++
@@ -120,7 +122,7 @@ func (b *Board) Grade() (score float64) {
 // A small utility function for checking if the row of a given board allows that number in it
 func (b *Board) uniqueRows(possible_num int, row int) bool {
 	for _, cell := range b.board[row] {
-		if possible_num == cell {
+		if possible_num == int(cell) {
 			return false
 		}
 	}
@@ -145,7 +147,7 @@ func (b *Board) isUniqueRow(r int) bool {
 func (b *Board) uniqueColumns(possible_num int, column int) bool {
 	for _, row := range b.board {
 		for col, cell := range row {
-			if col == column && possible_num == cell {
+			if col == column && possible_num == int(cell) {
 				return false
 			}
 		}
@@ -177,7 +179,7 @@ func (b *Board) uniqueBox(possible_num int, row int, col int) bool {
 
 	for i := starting_row; i < ending_row; i++ {
 		for j := starting_col; j < ending_col; j++ {
-			if b.board[i][j] == possible_num {
+			if b.board[i][j] == uint8(possible_num) {
 				return false
 			}
 		}
@@ -224,11 +226,11 @@ func (b Board) PossibleBoard() bool {
 }
 
 // Returns a slice of possible numbers that are allowed to be assigned in a board at the given position
-func (b *Board) PossibleCells(row int, col int) (possibles []int) {
-	possibles = []int{}
+func (b *Board) PossibleCells(row int, col int) (possibles []uint8) {
+	possibles = []uint8{}
 	for i := 1; i <= 9; i++ {
 		if b.uniqueRows(i, row) && b.uniqueColumns(i, col) && b.uniqueBox(i, row, col) {
-			possibles = append(possibles, i)
+			possibles = append(possibles, uint8(i))
 		}
 	}
 
@@ -288,12 +290,12 @@ func (b *Board) Clone() Board {
 }
 
 // Returns the integer at the given location of the board
-func (b *Board) Get(r int, c int) int {
+func (b *Board) Get(r int, c int) uint8 {
 	return b.board[r][c]
 }
 
 // Sets a given location on the board to a certain integer
-func (b *Board) Set(r int, c int, value int) {
+func (b *Board) Set(r int, c int, value uint8) {
 	b.board[r][c] = value
 }
 

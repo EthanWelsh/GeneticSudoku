@@ -3,7 +3,7 @@ package main
 var scoreCache map[string]float64
 
 type Chromosome struct {
-	genes [CHROMOSOME_SIZE]string
+	genes [CHROMOSOME_SIZE]uint8
 }
 
 // Fitness function used to determine the degree of completion of the board
@@ -45,7 +45,7 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 
 		rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // pick one or change cell to unassigned
 
-		var valueToAdd int
+		var valueToAdd uint8
 
 		if rand < len(possibilities) {
 			valueToAdd = possibilities[rand]
@@ -55,7 +55,7 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 		}
 
 		// add the mutation
-		population[modifiedChromosome].genes[modifiedGene] = NumToBitString(valueToAdd)
+		population[modifiedChromosome].genes[modifiedGene] = geneToNum(valueToAdd)
 	}
 
 	return population
@@ -106,7 +106,7 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 
 				rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
 
-				var valueToAdd int
+				var valueToAdd uint8
 
 				if rand < len(possibilities) {
 
@@ -116,11 +116,11 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 					valueToAdd = 0
 				}
 
-				chromosome.genes[c+(r*9)] = NumToBitString(valueToAdd)
+				chromosome.genes[c+(r*9)] = geneToNum(valueToAdd)
 				cpy.Set(r, c, valueToAdd)
 
 			} else {
-				chromosome.genes[c+(r*9)] = NumToBitString(b.Get(r, c))
+				chromosome.genes[c+(r*9)] = geneToNum(b.Get(r, c))
 			}
 		}
 	}
@@ -128,62 +128,20 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 	return chromosome
 }
 
-// Given a bit string, will provide the number which maps to that bit string
-func BitStringToNum(s string) int {
-	switch s {
-	case "0001":
-		return 1
-	case "0010":
-		return 2
-	case "0011":
-		return 3
-	case "0100":
-		return 4
-	case "0101":
-		return 5
-	case "0110":
-		return 6
-	case "0111":
-		return 7
-	case "1000":
-		return 8
-	case "1001":
-		return 9
-	default:
-		return 0
-	}
-}
+// Given a number, will provide the gene that maps to that number
+func geneToNum(n uint8) uint8 {
 
-// Given a num, will give the bit string that corresponds to that number
-func NumToBitString(num int) string {
-	switch num {
-	case 1:
-		return "0001"
-	case 2:
-		return "0010"
-	case 3:
-		return "0011"
-	case 4:
-		return "0100"
-	case 5:
-		return "0101"
-	case 6:
-		return "0110"
-	case 7:
-		return "0111"
-	case 8:
-		return "1000"
-	case 9:
-		return "1001"
-	default:
-		return "0000"
+	if n < 10 {
+		return n
+	} else {
+		return 0
 	}
 }
 
 // Returns the string representation of a particular chromosome
 func (c *Chromosome) String() (ret string) {
 	for _, s := range c.genes {
-		ret += s
+		ret += string(s) + " "
 	}
 	return
 }
