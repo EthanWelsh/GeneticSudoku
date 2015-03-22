@@ -1,9 +1,5 @@
 package main
 
-import (
-//"fmt"
-)
-
 var scoreCache map[string]int
 
 type Chromosome struct {
