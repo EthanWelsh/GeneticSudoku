@@ -12,7 +12,7 @@ const NUMBER_OF_COLS = 9
 const NUMBER_OF_ROWS = 9
 
 // Whenever a random gene or mutation occurs, how many chances should there be that the number will UNASSIGNED?
-var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 3
+var NUMBER_OF_CHANCES_FOR_UNASSIGNED = 5
 
 var POPULATION_SIZE = 1000
 
@@ -36,7 +36,7 @@ func main() {
 	for i := 0; i < 100; i++ {
 		avg, max, min := getPopulationStats(population)
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i, avg, max, min)
-		population = evolve(population, 100, 0)
+		population = evolve(population, 100, .001)
 
 		popMax := 0
 		popMaxInt := 0

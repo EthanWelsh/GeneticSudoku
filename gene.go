@@ -5,7 +5,7 @@ import (
 )
 
 const GENE_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
-const MATE_MAX_CHANCES = 100
+const MATE_MAX_RETRIES = 5
 
 var scoreCache map[string]int
 
@@ -51,7 +51,7 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 
 	firstIteration := true
 
-	for i := 0; firstIteration || !getBoardFromGene(res).IsNotWrong(); i++ {
+	for i := 0; firstIteration || getBoardFromGene(res).IsWrong(); i++ {
 
 		firstIteration = false
 
@@ -65,14 +65,13 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 		}
 
 		//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
-		if i >= MATE_MAX_CHANCES {
+		if i >= MATE_MAX_RETRIES {
 			if a.Score() > b.Score() {
 				return a
 			} else {
 				return b
 			}
 		}
-
 	}
 
 	return res
@@ -81,18 +80,32 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 // Generates a random gene sequence that represents a possible partial solution to the given board
 func getRandomGene(b *Board) (g Gene) {
 
-	firstIteration := true
+	cpy := b.Clone()
 
-	for firstIteration || !getBoardFromGene(g).IsNotWrong() {
-		firstIteration = false
-		for r := 0; r < NUMBER_OF_ROWS; r++ {
-			for c := 0; c < NUMBER_OF_COLS; c++ {
-				if b.Get(r, c) == UNASSIGNED {
-					rand := randomInt(1, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
-					g.gene[c+(r*9)] = numToBitString(rand)
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+
+			if b.Get(r, c) == UNASSIGNED {
+
+				possibilities := cpy.PossibleCells(r, c)
+
+				rand := randomInt(1, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+
+				var valueToAdd int
+
+				if rand < len(possibilities) {
+
+					valueToAdd = possibilities[rand]
+
 				} else {
-					g.gene[c+(r*9)] = numToBitString(b.Get(r, c))
+					valueToAdd = 0
 				}
+
+				g.gene[c+(r*9)] = numToBitString(valueToAdd)
+				cpy.Set(r, c, valueToAdd)
+
+			} else {
+				g.gene[c+(r*9)] = numToBitString(b.Get(r, c))
 			}
 		}
 	}

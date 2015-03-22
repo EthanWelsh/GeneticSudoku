@@ -14,11 +14,6 @@ type Board struct {
 	board [9][9]int
 }
 
-type Position struct {
-	row int
-	col int
-}
-
 // initializes a blank, unassigned sudoku board.
 func Init() Board {
 	new_board := Board{}
@@ -146,10 +141,10 @@ func (b *Board) isUniqueColumn(c int) bool {
 
 // A small utility function for checking if the box of a cell is unique based on the cells around it.
 // Look at sudoku rules for more information
-func (b *Board) uniqueBox(possible_num int, pos Position) bool {
+func (b *Board) uniqueBox(possible_num int, row int, col int) bool {
 	// check the box using math!!!
-	starting_row := (pos.row / 3) * 3
-	starting_col := (pos.col / 3) * 3
+	starting_row := (row / 3) * 3
+	starting_col := (col / 3) * 3
 	ending_row := starting_row + 3
 	ending_col := starting_col + 3
 
@@ -193,7 +188,7 @@ func (b *Board) isUniqueBox(row int, col int) bool {
 func (b Board) PossibleBoard() bool {
 	for i, row := range b.board {
 		for j, cell := range row {
-			if cell == UNASSIGNED && len(b.PossibleCells(Position{i, j})) == 0 {
+			if cell == UNASSIGNED && len(b.PossibleCells(i, j)) == 0 {
 				return false
 			}
 		}
@@ -203,10 +198,10 @@ func (b Board) PossibleBoard() bool {
 
 // PossibleCells returns a slice of possible numbers that are allowed to be assigned
 // in a board at the position input
-func (b *Board) PossibleCells(pos Position) (possibles []int) {
+func (b *Board) PossibleCells(row int, col int) (possibles []int) {
 	possibles = []int{}
 	for i := 1; i <= 9; i++ {
-		if b.uniqueRows(i, pos.row) && b.uniqueColumns(i, pos.col) && b.uniqueBox(i, pos) {
+		if b.uniqueRows(i, row) && b.uniqueColumns(i, col) && b.uniqueBox(i, row, col) {
 			possibles = append(possibles, i)
 		}
 	}
@@ -214,26 +209,26 @@ func (b *Board) PossibleCells(pos Position) (possibles []int) {
 	return possibles
 }
 
-func (b Board) IsNotWrong() bool {
+func (b Board) IsWrong() bool {
 
 	for i := 0; i < 9; i++ {
 		if !b.isUniqueRow(i) {
-			return false
+			return true
 		}
 
 		if !b.isUniqueColumn(i) {
-			return false
+			return true
 		}
 	}
 
 	for i := 0; i < 9; i += 3 {
 		for j := 0; j < 9; j += 3 {
 			if !b.isUniqueBox(i, j) {
-				return false
+				return true
 			}
 		}
 	}
-	return true
+	return false
 }
 
 // Checks to see if all cells have an assigned value. Complete =/= Correct.
@@ -274,4 +269,15 @@ func (b *Board) Get(r int, c int) int {
 
 func (b *Board) Set(r int, c int, value int) {
 	b.board[r][c] = value
+}
+
+func (b *Board) Clone() Board {
+	new_board := Board{}
+	for i, _ := range b.board {
+		for j, _ := range b.board[i] {
+			new_board.board[i][j] = b.board[i][j]
+		}
+	}
+
+	return new_board
 }
