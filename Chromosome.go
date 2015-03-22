@@ -4,8 +4,6 @@ import (
 	"math"
 )
 
-var scoreCache map[string]float64
-
 type Chromosome struct {
 	genes [CHROMOSOME_SIZE]uint8
 }
@@ -36,11 +34,18 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 	chanceForAllGenesNotToBeMutant := math.Pow(chancesOfGeneBeingNotMutant, CHROMOSOME_SIZE*POPULATION_SIZE)
 	chanceToModifyPopulation := 1 - chanceForAllGenesNotToBeMutant
 
+	var b Board
+
 	for randomFloat(0, 1) < chanceToModifyPopulation { // if you decided to mutate...
+
+	REDO:
+
+		var valueToAdd uint8
+
 		modifiedChromosome := randomInt(0, len(population)) // pick a random chromosome to modify
 		modifiedGene := randomInt(0, 81)                    // pick a random gene within that chromosome to modify
 
-		b := getBoardFromChromosome(population[modifiedChromosome]) // get the board representation of that chromosome
+		b = getBoardFromChromosome(population[modifiedChromosome]) // get the board representation of that chromosome
 
 		modifyRow := modifiedGene / NUMBER_OF_COLS
 		modifyCol := modifiedGene % NUMBER_OF_ROWS
@@ -49,8 +54,6 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 
 		rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // pick one or change cell to unassigned
 
-		var valueToAdd uint8
-
 		if rand < len(possibilities) {
 			valueToAdd = possibilities[rand]
 
@@ -58,8 +61,19 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 			valueToAdd = UNASSIGNED
 		}
 
-		// add the mutation
+		// save this for later...
+		temp := population[modifiedChromosome].genes[modifiedGene]
+
+		// add the mutation to the chromosome
 		population[modifiedChromosome].genes[modifiedGene] = geneToNum(valueToAdd)
+
+		b = getBoardFromChromosome(population[modifiedChromosome])
+
+		// TODO I SHOULDN'T NEED BOTH...
+		if b.IsWrong() || b.Grade() == 0 {
+			population[modifiedChromosome].genes[modifiedGene] = temp
+			goto REDO
+		}
 	}
 
 	return population

@@ -74,10 +74,7 @@ func (b *Board) Grade() (score float64) {
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 			// Give a point for every box that is filled in
-			if b.Get(r, c) != UNASSIGNED {
-				score++
-			} else {
-
+			if b.Get(r, c) == UNASSIGNED {
 				numberOfUnassignedPositions++
 
 				numberOfAvailablePositionsForThisSpot = len(b.PossibleCells(r, c))
@@ -88,6 +85,8 @@ func (b *Board) Grade() (score float64) {
 				} else if numberOfAvailablePositionsForThisSpot < minimumNumberOfAvailablePositions {
 					minimumNumberOfAvailablePositions = numberOfAvailablePositionsForThisSpot
 				}
+			} else {
+				score++
 			}
 		}
 	}

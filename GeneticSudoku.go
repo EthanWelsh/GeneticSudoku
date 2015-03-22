@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	CHANCE_TO_MODIFY_A_GENE           = .01
+	CHANCE_TO_MODIFY_A_GENE           = .0001
 	POPULATION_SIZE                   = 1000
 	NUMBER_OF_CHANCES_FOR_UNASSIGNED  = 5 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 	MATE_MAX_RETRIES                  = 10
@@ -28,6 +28,7 @@ const (
 )
 
 var boardCache map[string]Board
+var scoreCache map[string]float64
 
 func main() {
 
@@ -48,12 +49,12 @@ func main() {
 	for i := range population {
 		population[i] = GetRandomChromosome(&startBoard)
 
-		if i%100 == 0 {
-			fmt.Print(i/10, "%    ")
+		if i%(POPULATION_SIZE/10) == 0 {
+			fmt.Print((float64(i)/POPULATION_SIZE)*100.00, "%    ")
 		}
 	}
 
-	fmt.Println("\nDone generating solutions! Starting evolution...")
+	fmt.Println("100%\nDone generating solutions! Starting evolution...")
 
 	for i := 0; i < ITERATIONS; i++ {
 
