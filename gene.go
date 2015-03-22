@@ -31,7 +31,7 @@ func (g Gene) Score() int {
 func Mutate(population []Gene, chanceToMutateGene float64) {
 
 	if chanceToMutateGene == 0 {
-		return 0
+		return
 	}
 
 	chanceToModifyChromosome := chanceToMutateGene * 81
@@ -51,7 +51,7 @@ func mateGenes(a Gene, b Gene) (res Gene) {
 
 	firstIteration := true
 
-	for i := 0; firstIteration || !getBoardFromGene(res).PossibleBoard(); i++ {
+	for i := 0; firstIteration || !getBoardFromGene(res).IsNotWrong(); i++ {
 
 		firstIteration = false
 
@@ -83,7 +83,7 @@ func getRandomGene(b *Board) (g Gene) {
 
 	firstIteration := true
 
-	for firstIteration || !getBoardFromGene(g).PossibleBoard() {
+	for firstIteration || !getBoardFromGene(g).IsNotWrong() {
 		firstIteration = false
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {

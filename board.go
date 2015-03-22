@@ -214,6 +214,28 @@ func (b *Board) PossibleCells(pos Position) (possibles []int) {
 	return possibles
 }
 
+func (b Board) IsNotWrong() bool {
+
+	for i := 0; i < 9; i++ {
+		if !b.isUniqueRow(i) {
+			return false
+		}
+
+		if !b.isUniqueColumn(i) {
+			return false
+		}
+	}
+
+	for i := 0; i < 9; i += 3 {
+		for j := 0; j < 9; j += 3 {
+			if !b.isUniqueBox(i, j) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // Checks to see if all cells have an assigned value. Complete =/= Correct.
 func (b *Board) IsComplete() bool {
 	for _, row := range b.board {

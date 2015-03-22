@@ -36,7 +36,21 @@ func main() {
 	for i := 0; i < 100; i++ {
 		avg, max, min := getPopulationStats(population)
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i, avg, max, min)
-		population = evolve(population, 100, .0001)
+		population = evolve(population, 100, 0)
+
+		popMax := 0
+		popMaxInt := 0
+
+		for j, g := range population {
+
+			if g.Score() > popMax {
+				popMax = g.Score()
+				popMaxInt = j
+			}
+		}
+
+		b := getBoardFromGene(population[popMaxInt])
+		b.Print()
 
 	}
 }
