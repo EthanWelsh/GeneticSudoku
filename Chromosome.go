@@ -11,57 +11,58 @@ type Chromosome struct {
 }
 
 // Fitness function used to determine the degree of completion of the board
-func (g Chromosome) Score() int {
-	gs := g.String()
+func (c Chromosome) Score() int {
+	gs := c.String()
 
-	if val, ok := scoreCache[gs]; ok {
+	if val, ok := scoreCache[gs]; ok { // cache hit
 		return val
-	} else {
-		b := getBoardFromChromosome(g)
+	} else { // cache miss
+		b := getBoardFromChromosome(c) // get the board that corresponds to this chromosome
 		grade := b.Grade()
-		scoreCache[gs] = grade
+		scoreCache[gs] = grade // add it to the cache
 		return grade
 	}
 
 }
 
 // Will randomly mutate random genes in random chromosomes within a given population
-func Mutate(population []Chromosome, chanceToMutateGene float64) {
+func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 
 	if chanceToMutateGene == 0 {
-		return
+		return population
 	}
 
 	chanceToModifyChromosome := chanceToMutateGene * 81
-	chanceToModifyPopulation := (chanceToModifyChromosome * 1000) / ((chanceToModifyChromosome * 1000) + 1)
+	averageModificationsMadePerPopulation := chanceToModifyChromosome * 1000
+	chanceToModifyPopulation := averageModificationsMadePerPopulation / (averageModificationsMadePerPopulation + 1)
 
-	for randomFloat(0, 1) < chanceToModifyPopulation {
-		modifiedChromosome := randomInt(0, len(population))
-		modifiedGene := randomInt(0, 81)
+	for randomFloat(0, 1) < chanceToModifyPopulation { // if you decided to mutate...
+		modifiedChromosome := randomInt(0, len(population)) // pick a random chromosome to modify
+		modifiedGene := randomInt(0, 81)                    // pick a random gene within that chromosome to modify
 
-		b := getBoardFromChromosome(population[modifiedChromosome])
+		b := getBoardFromChromosome(population[modifiedChromosome]) // get the board representation of that chromosome
 
 		modifyRow := modifiedGene / NUMBER_OF_COLS
 		modifyCol := modifiedGene % NUMBER_OF_ROWS
 
-		possibilities := b.PossibleCells(modifyRow, modifyCol)
+		possibilities := b.PossibleCells(modifyRow, modifyCol) // get all the valid mutations that could be made
 
-		rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+		rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // pick one or change cell to unassigned
 
 		var valueToAdd int
 
 		if rand < len(possibilities) {
-
 			valueToAdd = possibilities[rand]
 
 		} else {
-			valueToAdd = 0
+			valueToAdd = UNASSIGNED
 		}
 
+		// add the mutation
 		population[modifiedChromosome].genes[modifiedGene] = NumToBitString(valueToAdd)
 	}
 
-	return
+	return population
 }
 
 // Will perform a crossover operation between two chromosomes
@@ -73,12 +74,12 @@ func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 
 		firstIteration = false
 
-		r := randomInt(1, CHROMOSOME_SIZE)
+		r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
 
-		for i := 0; i < r; i++ {
+		for i := 0; i < r; i++ { // get genes from a up until crossover point
 			res.genes[i] = a.genes[i]
 		}
-		for i := r; i < CHROMOSOME_SIZE; i++ {
+		for i := r; i < CHROMOSOME_SIZE; i++ { // after that, get genes from b
 			res.genes[i] = b.genes[i]
 		}
 
@@ -96,18 +97,18 @@ func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
-func GetRandomChromosome(b *Board) (g Chromosome) {
+func GetRandomChromosome(b *Board) (c Chromosome) {
 
 	cpy := b.Clone()
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 
-			if b.Get(r, c) == UNASSIGNED {
+			if b.Get(r, c) == UNASSIGNED { // for every unassigned cell in the board
 
-				possibilities := cpy.PossibleCells(r, c)
+				possibilities := cpy.PossibleCells(r, c) // get all the potential numbers that can go in that cell
 
-				rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED)
+				rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
 
 				var valueToAdd int
 
@@ -119,16 +120,16 @@ func GetRandomChromosome(b *Board) (g Chromosome) {
 					valueToAdd = 0
 				}
 
-				g.genes[c+(r*9)] = NumToBitString(valueToAdd)
+				c.genes[c+(r*9)] = NumToBitString(valueToAdd)
 				cpy.Set(r, c, valueToAdd)
 
 			} else {
-				g.genes[c+(r*9)] = NumToBitString(b.Get(r, c))
+				c.genes[c+(r*9)] = NumToBitString(b.Get(r, c))
 			}
 		}
 	}
 
-	return g
+	return c
 }
 
 // Given a bit string, will provide the number which maps to that bit string
@@ -184,8 +185,8 @@ func NumToBitString(num int) string {
 }
 
 // Returns the string representation of a particular chromosome
-func (g *Chromosome) String() (ret string) {
-	for _, s := range g.genes {
+func (c *Chromosome) String() (ret string) {
+	for _, s := range c.genes {
 		ret += s
 	}
 	return

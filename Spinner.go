@@ -4,9 +4,11 @@ import (
 	"math"
 )
 
+const SPOTS_ON_WHEEL = 100000
+
 type Spinner struct {
 	score       []int
-	wheel       [1000]int
+	wheel       [SPOTS_ON_WHEEL]int
 	chromosomes []Chromosome
 }
 
@@ -19,8 +21,8 @@ func (s *Spinner) addOptions(c []Chromosome) {
 
 	var total float64
 
+	// Remember the scores of each of the chromosomes and keep track of the over score for the population
 	for i, chromosome := range c {
-
 		score[i] = chromosome.Score()
 		total += float64(score[i])
 	}
@@ -29,9 +31,10 @@ func (s *Spinner) addOptions(c []Chromosome) {
 	wheelPos := 0
 	j := 0
 
+	// For every chromosome, determine how many spots that chromosome should get on the wheel
 	for i, chromosomeScore := range score {
-		chance = Round(float64(chromosomeScore)/total, 1, 3)
-		spotsOnWheel := int(chance * 1000)
+		chance = Round(float64(chromosomeScore)/total, 1, len(string(SPOTS_ON_WHEEL))-1)
+		spotsOnWheel := int(chance * SPOTS_ON_WHEEL)
 
 		for j = wheelPos; j < spotsOnWheel+wheelPos; j++ {
 			s.wheel[j] = i

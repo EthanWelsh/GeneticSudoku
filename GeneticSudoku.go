@@ -11,6 +11,7 @@ import (
 const (
 	ITERATIONS                        = 100
 	STEPS_PER_ITERATION               = 100
+	CHANCE_TO_MODIFY_A_GENE           = .0001
 	UNASSIGNED                        = 0
 	NUMBER_OF_ROWS                    = 9
 	NUMBER_OF_COLS                    = 9
@@ -37,22 +38,24 @@ func main() {
 
 	population := make([]Chromosome, POPULATION_SIZE)
 
+	// Generate random partial solutions to the given board
 	for i := range population {
 		population[i] = GetRandomChromosome(&startBoard)
 	}
 
 	for i := 0; i < ITERATIONS; i++ {
+
 		avg, max, min := getPopulationStats(population)
 		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
-		population = evolve(population, STEPS_PER_ITERATION, .001)
+		population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MODIFY_A_GENE)
 
 		popMax := 0
 		popMaxInt := 0
 
-		for j, g := range population {
+		for j, c := range population {
 
-			if g.Score() > popMax {
-				popMax = g.Score()
+			if c.Score() > popMax {
+				popMax = c.Score()
 				popMaxInt = j
 			}
 		}
@@ -70,7 +73,7 @@ func evolve(population []Chromosome, iterations int, chanceAtMutation float64) [
 		population = getNextGeneration(population)
 	}
 
-	Mutate(population, chanceAtMutation)
+	population = Mutate(population, chanceAtMutation)
 
 	return population
 
@@ -86,14 +89,40 @@ func getNextGeneration(oldPopulation []Chromosome) (newPopulation []Chromosome) 
 
 	for i := range newPopulation {
 
+		// Get mating partner A & B
 		phenotypeA := randomChromosomeSelector.Spin()
 		phenotypeB := randomChromosomeSelector.Spin()
 
+		// Mate them and add their child to the new population
 		newPopulation[i] = MateChromosome(phenotypeA, phenotypeB)
 
 	}
 
 	return newPopulation
+}
+
+// Given a specific chromosome, will get the board for that chromosome
+func getBoardFromChromosome(chromosome Chromosome) Board {
+
+	gs := chromosome.String()
+
+	if val, ok := boardCache[gs]; ok {
+		return val
+	} else {
+		board := Init()
+		var index int
+
+		for r := 0; r < NUMBER_OF_ROWS; r++ {
+			for c := 0; c < NUMBER_OF_COLS; c++ {
+				board.Set(r, c, BitStringToNum(chromosome.genes[index]))
+				index++
+			}
+		}
+
+		boardCache[gs] = board
+
+		return board
+	}
 }
 
 // Provide the average, maximum, and minimum board scores in the population
@@ -124,30 +153,6 @@ func getPopulationStats(population []Chromosome) (avg float64, max uint64, min u
 
 	return
 
-}
-
-// Given a specific chromosome, will get the board for that chromosome
-func getBoardFromChromosome(chromosome Chromosome) Board {
-
-	gs := chromosome.String()
-
-	if val, ok := boardCache[gs]; ok {
-		return val
-	} else {
-		board := Init()
-		var index int
-
-		for r := 0; r < NUMBER_OF_ROWS; r++ {
-			for c := 0; c < NUMBER_OF_COLS; c++ {
-				board.Set(r, c, BitStringToNum(chromosome.genes[index]))
-				index++
-			}
-		}
-
-		boardCache[gs] = board
-
-		return board
-	}
 }
 
 // Generates a random integer between min and max (inclusive)

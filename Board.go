@@ -65,6 +65,7 @@ func (b *Board) Grade() (score int) {
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
+			// Give a point for every box that is filled in
 			if b.Get(r, c) != UNASSIGNED {
 				score++
 			}
@@ -72,10 +73,13 @@ func (b *Board) Grade() (score int) {
 	}
 
 	for i := 0; i < 9; i++ {
+
+		// award REWARD_FOR_COMPLETE_BOARD_ELEMENT points for each complete row
 		if b.isUniqueRow(i) {
 			score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 		}
 
+		// award REWARD_FOR_COMPLETE_BOARD_ELEMENT points for each complete column
 		if b.isUniqueColumn(i) {
 			score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 		}
@@ -83,6 +87,7 @@ func (b *Board) Grade() (score int) {
 
 	for i := 0; i < 9; i += 3 {
 		for j := 0; j < 9; j += 3 {
+			// award REWARD_FOR_COMPLETE_BOARD_ELEMENT points for each complete box
 			if b.isUniqueBox(i, j) {
 				score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 			}
