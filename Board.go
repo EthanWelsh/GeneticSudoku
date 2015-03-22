@@ -66,7 +66,8 @@ func (b *Board) Grade() (score float64) {
 	//    Unique Column    |        3 |
 	//    Unique Box       |        3 |
 
-	numberOfAvailablePositions := 0
+	numberOfAvailablePositionsTotal := 0
+	numberOfAvailablePositionsForThisSpot := 0
 	numberOfUnassignedPositions := 0
 	minimumNumberOfAvailablePositions := math.MaxInt64
 
@@ -76,13 +77,16 @@ func (b *Board) Grade() (score float64) {
 			if b.Get(r, c) != UNASSIGNED {
 				score++
 			} else {
-				numberOfAvailablePositions += len(b.PossibleCells(r, c))
+
 				numberOfUnassignedPositions++
 
-				if numberOfAvailablePositions == 0 {
+				numberOfAvailablePositionsForThisSpot = len(b.PossibleCells(r, c))
+				numberOfAvailablePositionsTotal += numberOfAvailablePositionsForThisSpot
+
+				if numberOfAvailablePositionsForThisSpot == 0 {
 					return 0
-				} else if numberOfAvailablePositions < minimumNumberOfAvailablePositions {
-					minimumNumberOfAvailablePositions = numberOfAvailablePositions
+				} else if numberOfAvailablePositionsForThisSpot < minimumNumberOfAvailablePositions {
+					minimumNumberOfAvailablePositions = numberOfAvailablePositionsForThisSpot
 				}
 			}
 		}
@@ -91,8 +95,11 @@ func (b *Board) Grade() (score float64) {
 	// TODO factor in minimumNumberOfAvailablePositions
 
 	// Add a bonus for the average number of available positions for each unassigned spot in the board
-	bonusForAverageAvailableOptionsPerPosition := ((float64(numberOfAvailablePositions) / float64(numberOfUnassignedPositions)) * AVAILABLE_MODIFIER)
-	score += bonusForAverageAvailableOptionsPerPosition
+
+	if numberOfUnassignedPositions > 0 {
+		bonusForAverageAvailableOptionsPerPosition := ((float64(numberOfAvailablePositionsTotal) / float64(numberOfUnassignedPositions)) * AVAILABLE_MODIFIER)
+		score += bonusForAverageAvailableOptionsPerPosition
+	}
 
 	for i := 0; i < 9; i++ {
 
@@ -171,7 +178,6 @@ func (b *Board) isUniqueColumn(c int) bool {
 
 // A small utility function for checking if the box of a cell is unique based on the cells around it.
 func (b *Board) uniqueBox(possible_num int, row int, col int) bool {
-	// check the box using math!!!
 	starting_row := (row / 3) * 3
 	starting_col := (col / 3) * 3
 	ending_row := starting_row + 3
@@ -241,22 +247,41 @@ func (b *Board) PossibleCells(row int, col int) (possibles []uint8) {
 func (b Board) IsWrong() bool {
 
 	for i := 0; i < 9; i++ {
-		if !b.isUniqueRow(i) {
-			return true
-		}
 
-		if !b.isUniqueColumn(i) {
-			return true
+		nums := b.GetNumbersInRow(i)
+		if containsDuplicates(nums) {
+			return false
+		}
+	}
+
+	for i := 0; i < 9; i++ {
+
+		nums := b.GetNumbersInCol(i)
+		if containsDuplicates(nums) {
+			return false
 		}
 	}
 
 	for i := 0; i < 9; i += 3 {
 		for j := 0; j < 9; j += 3 {
-			if !b.isUniqueBox(i, j) {
-				return true
+			nums := b.GetNumbersInBox(i, j)
+			if containsDuplicates(nums) {
+				return false
 			}
 		}
 	}
+
+	// If you can't place any blocks in an unassigned spot...
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			if b.Get(r, c) == UNASSIGNED {
+				if len(b.PossibleCells(r, c)) == 0 {
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
@@ -289,6 +314,67 @@ func (b *Board) Clone() Board {
 	return new_board
 }
 
+// Get all assigned numbers in a given row
+func (b *Board) GetNumbersInRow(rowNum int) (row []uint8) {
+
+	for i := 0; i < NUMBER_OF_ROWS; i++ {
+		x := b.Get(rowNum, i)
+		if x != UNASSIGNED {
+			row = append(row, x)
+		}
+	}
+
+	return
+}
+
+// Get all assigned numbers in a given column
+func (b *Board) GetNumbersInCol(colNum int) (col []uint8) {
+
+	for i := 0; i < NUMBER_OF_COLS; i++ {
+
+		x := b.Get(i, colNum)
+
+		if x != UNASSIGNED {
+			col = append(col, x)
+		}
+	}
+
+	return
+}
+
+// Get all assigned numbers in a given box
+func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
+
+	starting_row := r
+	starting_col := c
+	ending_row := starting_row + 3
+	ending_col := starting_col + 3
+
+	for r := starting_row; r < ending_row; r++ {
+		for c := starting_col; c < ending_col; c++ {
+
+			x := b.Get(r, c)
+
+			if x != UNASSIGNED {
+				box = append(box, x)
+			}
+		}
+	}
+
+	return
+}
+
+func (b *Board) GetChromosomeFromBoard() (ret Chromosome) {
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			ret.genes[c+(r*9)] = b.Get(r, c)
+		}
+	}
+
+	return
+}
+
 // Returns the integer at the given location of the board
 func (b *Board) Get(r int, c int) uint8 {
 	return b.board[r][c]
@@ -312,4 +398,21 @@ func (b *Board) Print() {
 		}
 		fmt.Println()
 	}
+}
+
+// Checks to see if an array contains any duplicate values
+func containsDuplicates(arr []uint8) bool {
+
+	nums := make(map[uint8]bool)
+
+	for i := 0; i < len(arr); i++ {
+		if _, ok := nums[arr[i]]; ok {
+			return true
+		} else {
+			nums[arr[i]] = true
+		}
+	}
+
+	return false
+
 }

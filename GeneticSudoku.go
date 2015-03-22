@@ -42,10 +42,18 @@ func main() {
 
 	population := make([]Chromosome, POPULATION_SIZE)
 
+	fmt.Println("Generating", POPULATION_SIZE, "random solutions. This may take a while...")
+
 	// Generate random partial solutions to the given board
 	for i := range population {
 		population[i] = GetRandomChromosome(&startBoard)
+
+		if i%100 == 0 {
+			fmt.Print(i/10, "%    ")
+		}
 	}
+
+	fmt.Println("\nDone generating solutions! Starting evolution...")
 
 	for i := 0; i < ITERATIONS; i++ {
 

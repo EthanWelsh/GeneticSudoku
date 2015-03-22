@@ -123,6 +123,10 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 				chromosome.genes[c+(r*9)] = geneToNum(valueToAdd)
 				cpy.Set(r, c, valueToAdd)
 
+				if cpy.IsWrong() {
+					return GetRandomChromosome(b)
+				}
+
 			} else {
 				chromosome.genes[c+(r*9)] = geneToNum(b.Get(r, c))
 			}
@@ -130,6 +134,7 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 	}
 
 	return chromosome
+
 }
 
 // Given a number, will provide the gene that maps to that number
