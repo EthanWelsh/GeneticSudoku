@@ -1,5 +1,9 @@
 package main
 
+import (
+	"math"
+)
+
 var scoreCache map[string]float64
 
 type Chromosome struct {
@@ -28,9 +32,9 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 		return population
 	}
 
-	chanceToModifyChromosome := chanceToMutateGene * 81
-	averageModificationsMadePerPopulation := chanceToModifyChromosome * 1000
-	chanceToModifyPopulation := averageModificationsMadePerPopulation / (averageModificationsMadePerPopulation + 1)
+	chancesOfGeneBeingNotMutant := 1 - chanceToMutateGene
+	chanceForAllGenesNotToBeMutant := math.Pow(chancesOfGeneBeingNotMutant, CHROMOSOME_SIZE*POPULATION_SIZE)
+	chanceToModifyPopulation := 1 - chanceForAllGenesNotToBeMutant
 
 	for randomFloat(0, 1) < chanceToModifyPopulation { // if you decided to mutate...
 		modifiedChromosome := randomInt(0, len(population)) // pick a random chromosome to modify
