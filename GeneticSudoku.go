@@ -90,9 +90,8 @@ func evolve(population []Chromosome, iterations int, chanceAtMutation float64) [
 		}
 
 		population = getNextGeneration(population)
+		population = Mutate(population, chanceAtMutation)
 	}
-
-	population = Mutate(population, chanceAtMutation)
 
 	fmt.Println("100%")
 
