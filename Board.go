@@ -245,27 +245,28 @@ func (b *Board) PossibleCells(row int, col int) (possibles []uint8) {
 // Checks to see if a given board violates any of the rules of Sudoku
 func (b Board) IsWrong() bool {
 
+	// If there are duplicated within the row,
 	for i := 0; i < 9; i++ {
-
 		nums := b.GetNumbersInRow(i)
 		if containsDuplicates(nums) {
-			return false
+			return true
 		}
 	}
 
+	// column,
 	for i := 0; i < 9; i++ {
-
 		nums := b.GetNumbersInCol(i)
 		if containsDuplicates(nums) {
-			return false
+			return true
 		}
 	}
 
+	// or box, then this is an invalid board
 	for i := 0; i < 9; i += 3 {
 		for j := 0; j < 9; j += 3 {
 			nums := b.GetNumbersInBox(i, j)
 			if containsDuplicates(nums) {
-				return false
+				return true
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	//"fmt"
 	"math"
 )
 
@@ -69,8 +70,7 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 
 		b = getBoardFromChromosome(population[modifiedChromosome])
 
-		// TODO I SHOULDN'T NEED BOTH...
-		if b.IsWrong() || b.Grade() == 0 {
+		if b.IsWrong() {
 			population[modifiedChromosome].genes[modifiedGene] = temp
 			goto REDO
 		}
@@ -82,9 +82,8 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 // Will perform a crossover operation between two chromosomes
 func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 
-	// TODO Add crossover rate
-
 	if randomFloat(0, 1) < CROSSOVER_RATE {
+
 		firstIteration := true
 
 		for i := 0; firstIteration || getBoardFromChromosome(res).IsWrong(); i++ {
@@ -113,7 +112,6 @@ func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 	} else {
 		return a
 	}
-
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
