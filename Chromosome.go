@@ -82,32 +82,38 @@ func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
 // Will perform a crossover operation between two chromosomes
 func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
 
-	firstIteration := true
+	// TODO Add crossover rate
 
-	for i := 0; firstIteration || getBoardFromChromosome(res).IsWrong(); i++ {
+	if randomFloat(0, 1) < CROSSOVER_RATE {
+		firstIteration := true
 
-		firstIteration = false
+		for i := 0; firstIteration || getBoardFromChromosome(res).IsWrong(); i++ {
 
-		r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
+			firstIteration = false
 
-		for i := 0; i < r; i++ { // get genes from a up until crossover point
-			res.genes[i] = a.genes[i]
-		}
-		for i := r; i < CHROMOSOME_SIZE; i++ { // after that, get genes from b
-			res.genes[i] = b.genes[i]
-		}
+			r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
 
-		//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
-		if i >= MATE_MAX_RETRIES {
-			if a.Score() > b.Score() {
-				return a
-			} else {
-				return b
+			for i := 0; i < r; i++ { // get genes from a up until crossover point
+				res.genes[i] = a.genes[i]
+			}
+			for i := r; i < CHROMOSOME_SIZE; i++ { // after that, get genes from b
+				res.genes[i] = b.genes[i]
+			}
+
+			//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
+			if i >= MATE_MAX_RETRIES {
+				if a.Score() > b.Score() {
+					return a
+				} else {
+					return b
+				}
 			}
 		}
+		return res
+	} else {
+		return a
 	}
 
-	return res
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board

@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	CHANCE_TO_MODIFY_A_GENE           = .0001
+	CHANCE_TO_MUTATE_A_GENE           = .001
+	CROSSOVER_RATE                    = .7
 	POPULATION_SIZE                   = 1000
 	NUMBER_OF_CHANCES_FOR_UNASSIGNED  = 5 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 	MATE_MAX_RETRIES                  = 10
@@ -58,10 +59,6 @@ func main() {
 
 	for i := 0; i < ITERATIONS; i++ {
 
-		avg, max, min := getPopulationStats(population)
-		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
-		population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MODIFY_A_GENE)
-
 		popMax := 0.0
 		popMaxInt := 0
 
@@ -75,6 +72,10 @@ func main() {
 
 		b := getBoardFromChromosome(population[popMaxInt])
 		b.Print()
+		avg, max, min := getPopulationStats(population)
+		fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
+
+		population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MUTATE_A_GENE)
 
 	}
 }
@@ -83,10 +84,17 @@ func main() {
 func evolve(population []Chromosome, iterations int, chanceAtMutation float64) []Chromosome {
 
 	for i := 0; i < iterations; i++ {
+
+		if i%(iterations/10.00) == 0 {
+			fmt.Print((float64(i)/float64(iterations))*100.00, "%    ")
+		}
+
 		population = getNextGeneration(population)
 	}
 
 	population = Mutate(population, chanceAtMutation)
+
+	fmt.Println("100%")
 
 	return population
 
