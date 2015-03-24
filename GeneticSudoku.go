@@ -12,7 +12,7 @@ const (
 	CHANCE_TO_MUTATE_A_POPULATION    = .80
 	CROSSOVER_RATE                   = .7
 	POPULATION_SIZE                  = 10000
-	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 5 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
+	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 3 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
 	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 3
@@ -35,6 +35,10 @@ const (
 var boardCache map[string]Board
 var scoreCache map[string]float64
 
+var original Board
+
+var mutableGenes []int
+
 func main() {
 
 	rand.Seed(int64(time.Now().UnixNano()))
@@ -44,7 +48,7 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	startBoard := BoardParser("src/main/boards/board.txt")
+	original, mutableGenes = BoardParser("src/main/boards/board.txt")
 
 	population := make([]Chromosome, POPULATION_SIZE)
 
@@ -52,7 +56,7 @@ func main() {
 
 	// Generate random partial solutions to the given board
 	for i := range population {
-		population[i] = GetRandomChromosome(&startBoard)
+		population[i] = GetRandomChromosome(&original)
 
 		if i%(POPULATION_SIZE/10) == 0 {
 			fmt.Print((float64(i)/POPULATION_SIZE)*100.00, "%    ")
@@ -100,7 +104,7 @@ func evolve(population []Chromosome, iterations int, chanceAtMutation float64) [
 		}
 
 		population = getNextGeneration(population)
-		population = Mutate(population, chanceAtMutation)
+		population = Mutate(original, population, chanceAtMutation)
 	}
 
 	fmt.Println("100%")

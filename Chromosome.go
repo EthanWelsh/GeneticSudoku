@@ -20,7 +20,7 @@ func (c Chromosome) Score() float64 {
 }
 
 // Will randomly mutate random genes in random chromosomes within a given population
-func Mutate(population []Chromosome, chanceToModifyPopulation float64) []Chromosome {
+func Mutate(original Board, population []Chromosome, chanceToModifyPopulation float64) []Chromosome {
 
 	if chanceToModifyPopulation == 0 {
 		return population
@@ -29,7 +29,8 @@ func Mutate(population []Chromosome, chanceToModifyPopulation float64) []Chromos
 	for randomFloat(0, 1) < chanceToModifyPopulation { // if you decided to mutate...
 
 		modifiedChromosome := randomInt(0, len(population)) // pick a random chromosome to modify
-		modifiedGene := randomInt(0, 81)                    // pick a random gene within that chromosome to modify
+
+		modifiedGene := randomInt(0, len(mutableGenes)) // pick a random gene within that chromosome to modify
 
 		rand := randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
 

@@ -29,7 +29,7 @@ func Init() (new_board Board) {
 }
 
 // Reads a board in from file and returns it
-func BoardParser(filename string) (board Board) {
+func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
 	board = Init()
 	data, err := ioutil.ReadFile(filename)
 
@@ -52,6 +52,7 @@ func BoardParser(filename string) (board Board) {
 			col = 0
 		} else if data[counter] == '-' {
 			board.Set(row, col, UNASSIGNED)
+			genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
 			col++
 		}
 		counter++
