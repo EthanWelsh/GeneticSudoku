@@ -1,5 +1,4 @@
 # GeneticSudoku
-Basic genetic algorithm written in GoLang to solve Sudoku puzzles!
 
 A genetic algorithm is an algorithm which tries to mimick the process of natural selection in order to solve a problem. Like in nature, each solution is made up of several genes. These genes are mated with one another and undergo mutations in an ongoing evolution process until a solution has been reached.
 
