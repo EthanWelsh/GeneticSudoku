@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"math"
 	"os"
 	"strconv"
 	"unicode"
@@ -66,38 +65,17 @@ func (b *Board) Grade() (score float64) {
 	//    Unique Column    |        3 |
 	//    Unique Box       |        3 |
 
-	numberOfAvailablePositionsTotal := 0
-	numberOfAvailablePositionsForThisSpot := 0
-	numberOfUnassignedPositions := 0
-	minimumNumberOfAvailablePositions := math.MaxInt64
+	_, errorCount := b.IsWrong()
+
+	score += (float64(NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES) - float64(errorCount)) * ERROR_MODIFIER
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 			// Give a point for every box that is filled in
-			if b.Get(r, c) == UNASSIGNED {
-				numberOfUnassignedPositions++
-
-				numberOfAvailablePositionsForThisSpot = len(b.PossibleCells(r, c))
-				numberOfAvailablePositionsTotal += numberOfAvailablePositionsForThisSpot
-
-				if numberOfAvailablePositionsForThisSpot == 0 {
-					return 0
-				} else if numberOfAvailablePositionsForThisSpot < minimumNumberOfAvailablePositions {
-					minimumNumberOfAvailablePositions = numberOfAvailablePositionsForThisSpot
-				}
-			} else {
+			if b.Get(r, c) != UNASSIGNED {
 				score++
 			}
 		}
-	}
-
-	// TODO factor in minimumNumberOfAvailablePositions
-
-	// Add a bonus for the average number of available positions for each unassigned spot in the board
-
-	if numberOfUnassignedPositions > 0 {
-		bonusForAverageAvailableOptionsPerPosition := ((float64(numberOfAvailablePositionsTotal) / float64(numberOfUnassignedPositions)) * AVAILABLE_MODIFIER)
-		score += bonusForAverageAvailableOptionsPerPosition
 	}
 
 	for i := 0; i < 9; i++ {
@@ -243,13 +221,16 @@ func (b *Board) PossibleCells(row int, col int) (possibles []uint8) {
 }
 
 // Checks to see if a given board violates any of the rules of Sudoku
-func (b Board) IsWrong() bool {
+func (b Board) IsWrong() (ret bool, errorCount int) {
+
+	ret = false
 
 	// If there are duplicated within the row,
 	for i := 0; i < 9; i++ {
 		nums := b.GetNumbersInRow(i)
 		if containsDuplicates(nums) {
-			return true
+			ret = true
+			errorCount++
 		}
 	}
 
@@ -257,7 +238,8 @@ func (b Board) IsWrong() bool {
 	for i := 0; i < 9; i++ {
 		nums := b.GetNumbersInCol(i)
 		if containsDuplicates(nums) {
-			return true
+			ret = true
+			errorCount++
 		}
 	}
 
@@ -266,23 +248,13 @@ func (b Board) IsWrong() bool {
 		for j := 0; j < 9; j += 3 {
 			nums := b.GetNumbersInBox(i, j)
 			if containsDuplicates(nums) {
-				return true
+				ret = true
+				errorCount++
 			}
 		}
 	}
 
-	// If you can't place any blocks in an unassigned spot...
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			if b.Get(r, c) == UNASSIGNED {
-				if len(b.PossibleCells(r, c)) == 0 {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
+	return
 }
 
 // Checks to see if all cells have an assigned value. Complete =/= Correct.
@@ -299,7 +271,11 @@ func (b *Board) IsComplete() bool {
 
 // Checks to see if the board represents a complete and correct solution
 func (b *Board) IsCorrect() bool {
-	return b.Grade() == (NUMBER_OF_ROWS*NUMBER_OF_COLS)+(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)
+	return b.Grade() == (NUMBER_OF_ROWS*NUMBER_OF_COLS)+
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+ // complete rows
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+ // complete cols
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)+ // complete boxes
+		((NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES)*ERROR_MODIFIER) // lack of errors
 }
 
 // Return deep copy of given board

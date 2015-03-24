@@ -1,10 +1,5 @@
 package main
 
-import (
-	//"fmt"
-	"math"
-)
-
 type Chromosome struct {
 	genes [CHROMOSOME_SIZE]uint8
 }
@@ -25,127 +20,59 @@ func (c Chromosome) Score() float64 {
 }
 
 // Will randomly mutate random genes in random chromosomes within a given population
-func Mutate(population []Chromosome, chanceToMutateGene float64) []Chromosome {
+func Mutate(population []Chromosome, chanceToModifyPopulation float64) []Chromosome {
 
-	if chanceToMutateGene == 0 {
+	if chanceToModifyPopulation == 0 {
 		return population
 	}
 
-	chancesOfGeneBeingNotMutant := 1 - chanceToMutateGene
-	chanceForAllGenesNotToBeMutant := math.Pow(chancesOfGeneBeingNotMutant, CHROMOSOME_SIZE*POPULATION_SIZE)
-	chanceToModifyPopulation := 1 - chanceForAllGenesNotToBeMutant
-
-	var b Board
-
 	for randomFloat(0, 1) < chanceToModifyPopulation { // if you decided to mutate...
-
-	REDO:
-
-		var valueToAdd uint8
 
 		modifiedChromosome := randomInt(0, len(population)) // pick a random chromosome to modify
 		modifiedGene := randomInt(0, 81)                    // pick a random gene within that chromosome to modify
 
-		b = getBoardFromChromosome(population[modifiedChromosome]) // get the board representation of that chromosome
-
-		modifyRow := modifiedGene / NUMBER_OF_COLS
-		modifyCol := modifiedGene % NUMBER_OF_ROWS
-
-		possibilities := b.PossibleCells(modifyRow, modifyCol) // get all the valid mutations that could be made
-
-		rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // pick one or change cell to unassigned
-
-		if rand < len(possibilities) {
-			valueToAdd = possibilities[rand]
-
-		} else {
-			valueToAdd = UNASSIGNED
-		}
-
-		// save this for later...
-		temp := population[modifiedChromosome].genes[modifiedGene]
+		rand := randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
 
 		// add the mutation to the chromosome
-		population[modifiedChromosome].genes[modifiedGene] = geneToNum(valueToAdd)
-
-		b = getBoardFromChromosome(population[modifiedChromosome])
-
-		if b.IsWrong() {
-			population[modifiedChromosome].genes[modifiedGene] = temp
-			goto REDO
-		}
+		population[modifiedChromosome].genes[modifiedGene] = geneToNum(uint8(rand))
 	}
 
 	return population
 }
 
 // Will perform a crossover operation between two chromosomes
-func MateChromosome(a Chromosome, b Chromosome) (res Chromosome) {
+func MateChromosome(a Chromosome, b Chromosome) (resa Chromosome, resb Chromosome) {
 
 	if randomFloat(0, 1) < CROSSOVER_RATE {
 
-		firstIteration := true
+		r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
 
-		for i := 0; firstIteration || getBoardFromChromosome(res).IsWrong(); i++ {
-
-			firstIteration = false
-
-			r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
-
-			for i := 0; i < r; i++ { // get genes from a up until crossover point
-				res.genes[i] = a.genes[i]
-			}
-			for i := r; i < CHROMOSOME_SIZE; i++ { // after that, get genes from b
-				res.genes[i] = b.genes[i]
-			}
-
-			//To prevent deadlock, after a certain amount of unsuccessful mating attempts, just return the high board
-			if i >= MATE_MAX_RETRIES {
-				if a.Score() > b.Score() {
-					return a
-				} else {
-					return b
-				}
-			}
+		for i := 0; i < r; i++ { // get genes from a up until crossover point
+			resa.genes[i] = a.genes[i]
+			resb.genes[i] = b.genes[i]
 		}
-		return res
+		for i := r; i < CHROMOSOME_SIZE; i++ { // after that, get genes from b
+			resa.genes[i] = b.genes[i]
+			resb.genes[i] = a.genes[i]
+		}
+
+		return resa, resb
 	} else {
-		return a
+		return a, b
 	}
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board
 func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 
-	cpy := b.Clone()
-
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
-
 			if b.Get(r, c) == UNASSIGNED { // for every unassigned cell in the board
 
-				possibilities := cpy.PossibleCells(r, c) // get all the potential numbers that can go in that cell
+				rand := randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
+				chromosome.genes[c+(r*9)] = geneToNum(uint8(rand))
 
-				rand := randomInt(0, len(possibilities)+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
-
-				var valueToAdd uint8
-
-				if rand < len(possibilities) {
-
-					valueToAdd = possibilities[rand]
-
-				} else {
-					valueToAdd = 0
-				}
-
-				chromosome.genes[c+(r*9)] = geneToNum(valueToAdd)
-				cpy.Set(r, c, valueToAdd)
-
-				if cpy.IsWrong() {
-					return GetRandomChromosome(b)
-				}
-
-			} else {
+			} else { // TODO consider copying all genes over first...
 				chromosome.genes[c+(r*9)] = geneToNum(b.Get(r, c))
 			}
 		}
