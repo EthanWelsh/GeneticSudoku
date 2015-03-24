@@ -46,7 +46,7 @@ func MateChromosome(a Chromosome, b Chromosome) (resa Chromosome, resb Chromosom
 
 	if randomFloat(0, 1) < CROSSOVER_RATE {
 
-		r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
+		/*r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
 
 		for i := 0; i < r; i++ { // get genes from a up until crossover point
 			resa.genes[i] = a.genes[i]
@@ -57,7 +57,21 @@ func MateChromosome(a Chromosome, b Chromosome) (resa Chromosome, resb Chromosom
 			resb.genes[i] = a.genes[i]
 		}
 
+		return resa, resb*/
+
+		for i := range a.genes {
+
+			r := randomFloat(0, 1)
+			if r < .5 { // cross over
+				resa.genes[i] = b.genes[i]
+				resb.genes[i] = a.genes[i]
+			} else {
+				resa.genes[i] = a.genes[i]
+				resb.genes[i] = b.genes[i]
+			}
+		}
 		return resa, resb
+
 	} else {
 		return a, b
 	}

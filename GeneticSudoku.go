@@ -5,13 +5,14 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"time"
 )
 
 const (
-	CHANCE_TO_MUTATE_A_POPULATION    = .80
+	CHANCE_TO_MUTATE_A_POPULATION    = .90
 	CROSSOVER_RATE                   = .7
-	POPULATION_SIZE                  = 10000
+	POPULATION_SIZE                  = 1000
 	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 3 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
@@ -83,6 +84,7 @@ func main() {
 
 			fmt.Println("Sucessfully arrived at solution in", i*STEPS_PER_ITERATION, "generations:")
 			b.Print()
+			os.Exit(0)
 
 		} else {
 			b.Print()

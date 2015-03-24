@@ -12,7 +12,7 @@ type Board struct {
 	board *Chromosome
 }
 
-// initializes a blank, unassigned sudoku board.
+// Initializes a blank, unassigned sudoku board.
 func Init() (new_board Board) {
 
 	var newChromosome Chromosome
