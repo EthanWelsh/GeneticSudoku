@@ -340,17 +340,6 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 	return
 }
 
-func (b *Board) GetChromosomeFromBoard() (ret Chromosome) {
-
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			ret.genes[c+(r*9)] = b.Get(r, c)
-		}
-	}
-
-	return
-}
-
 // Returns the integer at the given location of the board
 func (b *Board) Get(r int, c int) uint8 {
 	return b.board[r][c]
