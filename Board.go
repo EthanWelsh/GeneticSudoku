@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 	"unicode"
@@ -19,9 +20,9 @@ func Init() (new_board Board) {
 
 	new_board.board = &newChromosome
 
-	for i := 0; i < 9; i++ {
-		for j := 0; j < 9; j++ {
-			new_board.Set(i, j, UNASSIGNED)
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			new_board.Set(r, c, UNASSIGNED)
 		}
 	}
 
@@ -52,11 +53,23 @@ func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
 			col = 0
 		} else if data[counter] == '-' {
 			board.Set(row, col, UNASSIGNED)
-			genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
 			col++
 		}
 		counter++
 	}
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			possibles := board.PossibleCells(r, c)
+
+			if len(possibles) == 1 {
+				board.Set(r, c, possibles[0])
+			} else {
+				genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
+			}
+		}
+	}
+
 	return
 }
 
@@ -74,16 +87,7 @@ func (b *Board) Grade() (score float64) {
 
 	score += (float64(NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES) - float64(errorCount)) * ERROR_MODIFIER
 
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			// Give a point for every box that is filled in
-			if b.Get(r, c) != UNASSIGNED {
-				score++
-			}
-		}
-	}
-
-	for i := 0; i < 9; i++ {
+	for i := 0; i < NUMBER_OF_ROWS; i++ {
 
 		// award REWARD_FOR_COMPLETE_BOARD_ELEMENT points for each complete row
 		if b.isUniqueRow(i) {
@@ -96,10 +100,10 @@ func (b *Board) Grade() (score float64) {
 		}
 	}
 
-	for i := 0; i < 9; i += 3 {
-		for j := 0; j < 9; j += 3 {
+	for r := 0; r < NUMBER_OF_ROWS; r += int(math.Sqrt(NUMBER_OF_ROWS)) {
+		for c := 0; c < NUMBER_OF_COLS; c += int(math.Sqrt(NUMBER_OF_COLS)) {
 			// award REWARD_FOR_COMPLETE_BOARD_ELEMENT points for each complete box
-			if b.isUniqueBox(i, j) {
+			if b.isUniqueBox(r, c) {
 				score += REWARD_FOR_COMPLETE_BOARD_ELEMENT
 			}
 		}
@@ -122,7 +126,7 @@ func (b *Board) uniqueRows(possible_num uint8, row int) bool {
 
 // checks to see if given row is unique
 func (b *Board) isUniqueRow(r int) bool {
-	counter := make([]int, 9)
+	counter := make([]int, NUMBER_OF_ROWS)
 
 	for c := 0; c < NUMBER_OF_COLS; c++ {
 
@@ -148,7 +152,7 @@ func (b *Board) uniqueColumns(possible_num uint8, col int) bool {
 
 // checks to see if given column is unique
 func (b *Board) isUniqueColumn(c int) bool {
-	counter := make([]int, 9)
+	counter := make([]int, NUMBER_OF_COLS)
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 
@@ -162,10 +166,13 @@ func (b *Board) isUniqueColumn(c int) bool {
 
 // A small utility function for checking if the box of a cell is unique based on the cells around it.
 func (b *Board) uniqueBox(possible_num uint8, row int, col int) bool {
-	starting_row := (row / 3) * 3
-	starting_col := (col / 3) * 3
-	ending_row := starting_row + 3
-	ending_col := starting_col + 3
+
+	spaceToNextBox := int(math.Sqrt(NUMBER_OF_ROWS))
+
+	starting_row := (row / spaceToNextBox) * spaceToNextBox
+	starting_col := (col / spaceToNextBox) * spaceToNextBox
+	ending_row := starting_row + spaceToNextBox
+	ending_col := starting_col + spaceToNextBox
 
 	for i := starting_row; i < ending_row; i++ {
 		for j := starting_col; j < ending_col; j++ {
@@ -180,12 +187,14 @@ func (b *Board) uniqueBox(possible_num uint8, row int, col int) bool {
 // checks to see if given box is unique
 func (b *Board) isUniqueBox(row int, col int) bool {
 
-	counter := make([]int, 9)
+	counter := make([]int, NUMBER_OF_ROWS)
+
+	spaceToNextBox := int(math.Sqrt(NUMBER_OF_ROWS))
 
 	starting_row := row
 	starting_col := col
-	ending_row := starting_row + 3
-	ending_col := starting_col + 3
+	ending_row := starting_row + spaceToNextBox
+	ending_col := starting_col + spaceToNextBox
 
 	for r := starting_row; r < ending_row; r++ {
 		for c := starting_col; c < ending_col; c++ {
@@ -223,7 +232,7 @@ func (b *Board) PossibleCells(row int, col int) (possibles []uint8) {
 
 	var i uint8
 
-	for i = 1; i <= 9; i++ {
+	for i = 1; i <= NUMBER_OF_ROWS; i++ {
 		if b.uniqueRows(i, row) && b.uniqueColumns(i, col) && b.uniqueBox(i, row, col) {
 			possibles = append(possibles, uint8(i))
 		}
@@ -238,7 +247,7 @@ func (b Board) IsWrong() (ret bool, errorCount int) {
 	ret = false
 
 	// If there are duplicated within the row,
-	for i := 0; i < 9; i++ {
+	for i := 0; i < NUMBER_OF_ROWS; i++ {
 		nums := b.GetNumbersInRow(i)
 		if containsDuplicates(nums) {
 			ret = true
@@ -247,7 +256,7 @@ func (b Board) IsWrong() (ret bool, errorCount int) {
 	}
 
 	// column,
-	for i := 0; i < 9; i++ {
+	for i := 0; i < NUMBER_OF_COLS; i++ {
 		nums := b.GetNumbersInCol(i)
 		if containsDuplicates(nums) {
 			ret = true
@@ -256,9 +265,9 @@ func (b Board) IsWrong() (ret bool, errorCount int) {
 	}
 
 	// or box, then this is an invalid board
-	for i := 0; i < 9; i += 3 {
-		for j := 0; j < 9; j += 3 {
-			nums := b.GetNumbersInBox(i, j)
+	for r := 0; r < NUMBER_OF_ROWS; r += int(math.Sqrt(NUMBER_OF_ROWS)) {
+		for c := 0; c < NUMBER_OF_COLS; c += int(math.Sqrt(NUMBER_OF_COLS)) {
+			nums := b.GetNumbersInBox(r, c)
 			if containsDuplicates(nums) {
 				ret = true
 				errorCount++
@@ -285,8 +294,7 @@ func (b *Board) IsComplete() bool {
 
 // Checks to see if the board represents a complete and correct solution
 func (b *Board) IsCorrect() bool {
-	return b.Grade() == (NUMBER_OF_ROWS*NUMBER_OF_COLS)+
-		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+ // complete rows
+	return b.Grade() == (REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+ // complete rows
 		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+ // complete cols
 		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)+ // complete boxes
 		((NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES)*ERROR_MODIFIER) // lack of errors
@@ -323,10 +331,12 @@ func (b *Board) GetNumbersInCol(colNum int) (col []uint8) {
 // Get all assigned numbers in a given box
 func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 
+	spaceToNextBox := int(math.Sqrt(NUMBER_OF_ROWS))
+
 	starting_row := r
 	starting_col := c
-	ending_row := starting_row + 3
-	ending_col := starting_col + 3
+	ending_row := starting_row + spaceToNextBox
+	ending_col := starting_col + spaceToNextBox
 
 	for r := starting_row; r < ending_row; r++ {
 		for c := starting_col; c < ending_col; c++ {
@@ -344,12 +354,12 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 
 // Returns the integer at the given location of the board
 func (b *Board) Get(r int, c int) uint8 {
-	return b.board.genes[c+(r*9)]
+	return b.board.genes[c+(r*NUMBER_OF_ROWS)]
 }
 
 // Sets a given location on the board to a certain integer
 func (b *Board) Set(r int, c int, value uint8) {
-	b.board.genes[c+(r*9)] = value
+	b.board.genes[c+(r*NUMBER_OF_ROWS)] = value
 }
 
 // Prints the board!

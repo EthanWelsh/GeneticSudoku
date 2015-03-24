@@ -10,25 +10,24 @@ import (
 )
 
 const (
-	CHANCE_TO_MUTATE_A_POPULATION    = .90
+	CHANCE_TO_MUTATE_A_POPULATION    = .97
 	CROSSOVER_RATE                   = .7
 	POPULATION_SIZE                  = 1000
-	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 3 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
+	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 0 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
-	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 3
+	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 4
 
 	ITERATIONS          = 100
 	STEPS_PER_ITERATION = 100
 
-	AVAILABLE_MODIFIER = 3
-	ERROR_MODIFIER     = 5
+	ERROR_MODIFIER = 5
 
 	CHROMOSOME_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
 
-	NUMBER_OF_ROWS  = 9
-	NUMBER_OF_COLS  = 9
-	NUMBER_OF_BOXES = 9
+	NUMBER_OF_ROWS  = 4
+	NUMBER_OF_COLS  = 4
+	NUMBER_OF_BOXES = 4
 
 	UNASSIGNED = 0
 )
@@ -49,7 +48,7 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	original, mutableGenes = BoardParser("src/main/boards/board.txt")
+	original, mutableGenes = BoardParser("src/main/boards/small.txt")
 
 	population := make([]Chromosome, POPULATION_SIZE)
 

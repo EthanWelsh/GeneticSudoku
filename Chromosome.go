@@ -32,7 +32,7 @@ func Mutate(original Board, population []Chromosome, chanceToModifyPopulation fl
 
 		modifiedGene := randomInt(0, len(mutableGenes)) // pick a random gene within that chromosome to modify
 
-		rand := randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
+		rand := randomInt(1, NUMBER_OF_ROWS+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
 
 		// add the mutation to the chromosome
 		population[modifiedChromosome].genes[modifiedGene] = geneToNum(uint8(rand))
@@ -45,20 +45,6 @@ func Mutate(original Board, population []Chromosome, chanceToModifyPopulation fl
 func MateChromosome(a Chromosome, b Chromosome) (resa Chromosome, resb Chromosome) {
 
 	if randomFloat(0, 1) < CROSSOVER_RATE {
-
-		/*r := randomInt(1, CHROMOSOME_SIZE) // pick a random spot within the chromosomes to crossover
-
-		for i := 0; i < r; i++ { // get genes from a up until crossover point
-			resa.genes[i] = a.genes[i]
-			resb.genes[i] = b.genes[i]
-		}
-		for i := r; i < CHROMOSOME_SIZE; i++ { // after that, get genes from b
-			resa.genes[i] = b.genes[i]
-			resb.genes[i] = a.genes[i]
-		}
-
-		return resa, resb*/
-
 		for i := range a.genes {
 
 			r := randomFloat(0, 1)
@@ -84,11 +70,11 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 			if b.Get(r, c) == UNASSIGNED { // for every unassigned cell in the board
 
-				rand := randomInt(0, 9+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
-				chromosome.genes[c+(r*9)] = geneToNum(uint8(rand))
+				rand := randomInt(1, NUMBER_OF_ROWS+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
+				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = geneToNum(uint8(rand))
 
-			} else { // TODO consider copying all genes over first...
-				chromosome.genes[c+(r*9)] = geneToNum(b.Get(r, c))
+			} else {
+				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = geneToNum(b.Get(r, c))
 			}
 		}
 	}
