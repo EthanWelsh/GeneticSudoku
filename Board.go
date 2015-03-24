@@ -9,15 +9,19 @@ import (
 )
 
 type Board struct {
-	board [9][9]uint8
+	board *Chromosome
 }
 
 // initializes a blank, unassigned sudoku board.
-func Init() Board {
-	new_board := Board{}
+func Init() (new_board Board) {
+
+	var newChromosome Chromosome
+
+	new_board.board = &newChromosome
+
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
-			new_board.board[i][j] = UNASSIGNED
+			new_board.Set(i, j, UNASSIGNED)
 		}
 	}
 
@@ -41,13 +45,13 @@ func BoardParser(filename string) (board Board) {
 		if unicode.IsDigit(rune(data[counter])) {
 
 			num, _ := strconv.Atoi(string(data[counter]))
-			board.board[row][col] = uint8(num)
+			board.Set(row, col, uint8(num))
 			col++
 		} else if data[counter] == '\n' {
 			row++
 			col = 0
 		} else if data[counter] == '-' {
-			board.board[row][col] = UNASSIGNED
+			board.Set(row, col, UNASSIGNED)
 			col++
 		}
 		counter++
@@ -104,12 +108,14 @@ func (b *Board) Grade() (score float64) {
 }
 
 // A small utility function for checking if the row of a given board allows that number in it
-func (b *Board) uniqueRows(possible_num int, row int) bool {
-	for _, cell := range b.board[row] {
-		if possible_num == int(cell) {
+func (b *Board) uniqueRows(possible_num uint8, row int) bool {
+
+	for c := 0; c < NUMBER_OF_COLS; c++ {
+		if b.Get(row, c) == possible_num {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -128,14 +134,14 @@ func (b *Board) isUniqueRow(r int) bool {
 }
 
 // Refer to uniqueRows, except columns
-func (b *Board) uniqueColumns(possible_num int, column int) bool {
-	for _, row := range b.board {
-		for col, cell := range row {
-			if col == column && possible_num == int(cell) {
-				return false
-			}
+func (b *Board) uniqueColumns(possible_num uint8, col int) bool {
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		if b.Get(col, r) == possible_num {
+			return false
 		}
 	}
+
 	return true
 }
 
@@ -154,7 +160,7 @@ func (b *Board) isUniqueColumn(c int) bool {
 }
 
 // A small utility function for checking if the box of a cell is unique based on the cells around it.
-func (b *Board) uniqueBox(possible_num int, row int, col int) bool {
+func (b *Board) uniqueBox(possible_num uint8, row int, col int) bool {
 	starting_row := (row / 3) * 3
 	starting_col := (col / 3) * 3
 	ending_row := starting_row + 3
@@ -162,7 +168,7 @@ func (b *Board) uniqueBox(possible_num int, row int, col int) bool {
 
 	for i := starting_row; i < ending_row; i++ {
 		for j := starting_col; j < ending_col; j++ {
-			if b.board[i][j] == uint8(possible_num) {
+			if b.Get(i, j) == uint8(possible_num) {
 				return false
 			}
 		}
@@ -198,20 +204,25 @@ func (b *Board) isUniqueBox(row int, col int) bool {
 
 // PossibleBoard returns whether the board is solveable
 func (b Board) PossibleBoard() bool {
-	for i, row := range b.board {
-		for j, cell := range row {
-			if cell == UNASSIGNED && len(b.PossibleCells(i, j)) == 0 {
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			if b.Get(r, c) == UNASSIGNED && len(b.PossibleCells(r, c)) == 0 {
 				return false
 			}
 		}
 	}
+
 	return true
 }
 
 // Returns a slice of possible numbers that are allowed to be assigned in a board at the given position
 func (b *Board) PossibleCells(row int, col int) (possibles []uint8) {
 	possibles = []uint8{}
-	for i := 1; i <= 9; i++ {
+
+	var i uint8
+
+	for i = 1; i <= 9; i++ {
 		if b.uniqueRows(i, row) && b.uniqueColumns(i, col) && b.uniqueBox(i, row, col) {
 			possibles = append(possibles, uint8(i))
 		}
@@ -259,13 +270,15 @@ func (b Board) IsWrong() (ret bool, errorCount int) {
 
 // Checks to see if all cells have an assigned value. Complete =/= Correct.
 func (b *Board) IsComplete() bool {
-	for _, row := range b.board {
-		for _, cell := range row {
-			if cell == UNASSIGNED {
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			if b.Get(r, c) == UNASSIGNED {
 				return false
 			}
 		}
 	}
+
 	return true
 }
 
@@ -276,18 +289,6 @@ func (b *Board) IsCorrect() bool {
 		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+ // complete cols
 		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)+ // complete boxes
 		((NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES)*ERROR_MODIFIER) // lack of errors
-}
-
-// Return deep copy of given board
-func (b *Board) Clone() Board {
-	new_board := Board{}
-	for i, _ := range b.board {
-		for j, _ := range b.board[i] {
-			new_board.board[i][j] = b.board[i][j]
-		}
-	}
-
-	return new_board
 }
 
 // Get all assigned numbers in a given row
@@ -342,24 +343,26 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 
 // Returns the integer at the given location of the board
 func (b *Board) Get(r int, c int) uint8 {
-	return b.board[r][c]
+	return b.board.genes[c+(r*9)]
 }
 
 // Sets a given location on the board to a certain integer
 func (b *Board) Set(r int, c int, value uint8) {
-	b.board[r][c] = value
+	b.board.genes[c+(r*9)] = value
 }
 
 // Prints the board!
 func (b *Board) Print() {
-	for _, row := range b.board {
-		for _, cell := range row {
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
+		for c := 0; c < NUMBER_OF_COLS; c++ {
+			cell := b.Get(r, c)
+
 			if cell == UNASSIGNED {
 				fmt.Print(" - ")
 			} else {
 				fmt.Print(" ", cell, " ")
 			}
-
 		}
 		fmt.Println()
 	}
