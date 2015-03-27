@@ -42,25 +42,31 @@ func Mutate(original Board, population []Chromosome, chanceToModifyPopulation fl
 }
 
 // Will perform a crossover operation between two chromosomes
-func MateChromosome(a Chromosome, b Chromosome) (resa Chromosome, resb Chromosome) {
+func MateChromosome(a Chromosome, b Chromosome) (Chromosome, Chromosome) {
 
 	if randomFloat(0, 1) < CROSSOVER_RATE {
-		for i := range a.genes {
 
-			r := randomFloat(0, 1)
-			if r < .5 { // cross over
-				resa.genes[i] = b.genes[i]
-				resb.genes[i] = a.genes[i]
-			} else {
-				resa.genes[i] = a.genes[i]
-				resb.genes[i] = b.genes[i]
+		rowColBox := randomInt(0, 2)
+		crossoverAt := randomInt(1, 80)
+
+		indexToModify := 0
+
+		for i := crossoverAt; i < CHROMOSOME_SIZE; i++ {
+
+			if rowColBox == 0 { // ROWS
+				indexToModify = GetCellByRow(crossoverAt)
+			} else if rowColBox == 1 { //COLS
+				indexToModify = GetCellByCol(crossoverAt)
+			} else { // BOXES
+				indexToModify = GetCellByBox(crossoverAt)
 			}
-		}
-		return resa, resb
 
-	} else {
-		return a, b
+			a.genes[indexToModify] = b.genes[indexToModify]
+			b.genes[indexToModify] = a.genes[indexToModify]
+
+		}
 	}
+	return a, b
 }
 
 // Generates a random gene sequence that represents a possible partial solution to the given board

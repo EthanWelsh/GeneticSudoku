@@ -353,20 +353,20 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 }
 
 // Given an index, will return the R and C values for the index element in the board, counting by row
-func (b *Board) GetCellByRow(index int) (r, c uint8) {
+func GetCellByRow(index int) (convertedIndex int) {
 
-	r = uint8(index / NUMBER_OF_ROWS)
-	c = uint8(index % NUMBER_OF_COLS)
+	r := index / NUMBER_OF_ROWS
+	c := index % NUMBER_OF_COLS
 
-	return
+	return (r * NUMBER_OF_ROWS) + c
 }
 
 // Given an index, will return the R and C values for the index element in the board, counting by col
-func (b *Board) GetCellByCol(index int) (r, c uint8) {
-	c = uint8(index / NUMBER_OF_COLS)
-	r = uint8(index % NUMBER_OF_ROWS)
+func GetCellByCol(index int) (convertedIndex int) {
+	c := index / NUMBER_OF_COLS
+	r := index % NUMBER_OF_ROWS
 
-	return
+	return (r * NUMBER_OF_ROWS) + c
 }
 
 // Given an index, will return the R and C values for the index element in the board, counting by col
@@ -374,22 +374,21 @@ func (b *Board) GetCellByCol(index int) (r, c uint8) {
 // 0  1  2   9  10 11
 // 3  4  5   12 13 14
 // 6  7  8   15 16 17
-func (b *Board) GetCellByBox(index uint8) (r, c uint8) {
+func GetCellByBox(index int) (convertedIndex int) {
 
-	boxNum := uint8(index / NUMBER_OF_ROWS) //0-8
+	boxNum := index / NUMBER_OF_ROWS // 0-8
 
-	sizeOfBox := uint8(math.Sqrt(NUMBER_OF_ROWS))
+	sizeOfBox := int(math.Sqrt(NUMBER_OF_ROWS))
 
 	startR := (boxNum * sizeOfBox) / NUMBER_OF_ROWS
-	startC := uint8((boxNum % sizeOfBox) * sizeOfBox)
+	startC := (boxNum % sizeOfBox) * sizeOfBox
 
 	index = index % NUMBER_OF_ROWS
 
-	r = startR + uint8(index/sizeOfBox)
-	c = startC + uint8(index%sizeOfBox)
+	r := startR + index/sizeOfBox
+	c := startC + index%sizeOfBox
 
-	return
-
+	return (r * NUMBER_OF_ROWS) + c
 }
 
 // Prints the board!
