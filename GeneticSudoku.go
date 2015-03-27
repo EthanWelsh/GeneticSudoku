@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	CHANCE_TO_MUTATE_A_POPULATION    = .97
-	CROSSOVER_RATE                   = .7
+	CHANCE_TO_MUTATE_A_POPULATION    = .98
+	CROSSOVER_RATE                   = .8
 	POPULATION_SIZE                  = 1000
 	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 0 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
 

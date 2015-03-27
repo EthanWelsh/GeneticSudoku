@@ -60,12 +60,14 @@ func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
-			possibles := board.PossibleCells(r, c)
+			if board.Get(r, c) == UNASSIGNED {
+				possibles := board.PossibleCells(r, c)
 
-			if len(possibles) == 1 {
-				board.Set(r, c, possibles[0])
-			} else {
-				genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
+				if len(possibles) == 1 {
+					board.Set(r, c, possibles[0])
+				} else {
+					genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
+				}
 			}
 		}
 	}
@@ -427,10 +429,10 @@ func containsDuplicates(arr []uint8) bool {
 
 // Returns the integer at the given location of the board
 func (b *Board) Get(r int, c int) uint8 {
-	return b.board.genes[c+(r*NUMBER_OF_ROWS)]
+	return b.board.genes[(r*NUMBER_OF_ROWS)+c]
 }
 
 // Sets a given location on the board to a certain integer
 func (b *Board) Set(r int, c int, value uint8) {
-	b.board.genes[c+(r*NUMBER_OF_ROWS)] = value
+	b.board.genes[(r*NUMBER_OF_ROWS)+c] = value
 }

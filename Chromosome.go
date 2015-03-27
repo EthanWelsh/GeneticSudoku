@@ -80,7 +80,7 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = geneToNum(uint8(rand))
 
 			} else {
-				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = geneToNum(b.Get(r, c))
+				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = b.Get(r, c)
 			}
 		}
 	}
