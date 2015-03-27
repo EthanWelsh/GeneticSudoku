@@ -352,14 +352,44 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 	return
 }
 
-// Returns the integer at the given location of the board
-func (b *Board) Get(r int, c int) uint8 {
-	return b.board.genes[c+(r*NUMBER_OF_ROWS)]
+// Given an index, will return the R and C values for the index element in the board, counting by row
+func (b *Board) GetCellByRow(index int) (r, c uint8) {
+
+	r = uint8(index / NUMBER_OF_ROWS)
+	c = uint8(index % NUMBER_OF_COLS)
+
+	return
 }
 
-// Sets a given location on the board to a certain integer
-func (b *Board) Set(r int, c int, value uint8) {
-	b.board.genes[c+(r*NUMBER_OF_ROWS)] = value
+// Given an index, will return the R and C values for the index element in the board, counting by col
+func (b *Board) GetCellByCol(index int) (r, c uint8) {
+	c = uint8(index / NUMBER_OF_COLS)
+	r = uint8(index % NUMBER_OF_ROWS)
+
+	return
+}
+
+// Given an index, will return the R and C values for the index element in the board, counting by col
+// Boxes are read likeso:
+// 0  1  2   9  10 11
+// 3  4  5   12 13 14
+// 6  7  8   15 16 17
+func (b *Board) GetCellByBox(index uint8) (r, c uint8) {
+
+	boxNum := uint8(index / NUMBER_OF_ROWS) //0-8
+
+	sizeOfBox := uint8(math.Sqrt(NUMBER_OF_ROWS))
+
+	startR := (boxNum * sizeOfBox) / NUMBER_OF_ROWS
+	startC := uint8((boxNum % sizeOfBox) * sizeOfBox)
+
+	index = index % NUMBER_OF_ROWS
+
+	r = startR + uint8(index/sizeOfBox)
+	c = startC + uint8(index%sizeOfBox)
+
+	return
+
 }
 
 // Prints the board!
@@ -394,4 +424,14 @@ func containsDuplicates(arr []uint8) bool {
 
 	return false
 
+}
+
+// Returns the integer at the given location of the board
+func (b *Board) Get(r int, c int) uint8 {
+	return b.board.genes[c+(r*NUMBER_OF_ROWS)]
+}
+
+// Sets a given location on the board to a certain integer
+func (b *Board) Set(r int, c int, value uint8) {
+	b.board.genes[c+(r*NUMBER_OF_ROWS)] = value
 }

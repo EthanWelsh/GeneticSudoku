@@ -25,9 +25,9 @@ const (
 
 	CHROMOSOME_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
 
-	NUMBER_OF_ROWS  = 4
-	NUMBER_OF_COLS  = 4
-	NUMBER_OF_BOXES = 4
+	NUMBER_OF_ROWS  = 9
+	NUMBER_OF_COLS  = 9
+	NUMBER_OF_BOXES = 9
 
 	UNASSIGNED = 0
 )
@@ -48,7 +48,7 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	original, mutableGenes = BoardParser("src/main/boards/small.txt")
+	original, mutableGenes = BoardParser("src/main/boards/9x9/board.txt")
 
 	population := make([]Chromosome, POPULATION_SIZE)
 
