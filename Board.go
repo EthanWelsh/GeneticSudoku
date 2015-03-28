@@ -58,7 +58,8 @@ func BoardParser(filename string) (board Board) {
 		counter++
 	}
 
-	/*for r := 0; r < NUMBER_OF_ROWS; r++ {
+
+	for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 			if board.Get(r, c) == UNASSIGNED {
 				possibles := board.PossibleCells(r, c)
@@ -67,7 +68,7 @@ func BoardParser(filename string) (board Board) {
 				}
 			}
 		}
-	}*/
+	}
 
 	return
 }
@@ -141,7 +142,7 @@ func (b *Board) isUniqueRow(r int) bool {
 func (b *Board) uniqueColumns(possible_num uint8, col int) bool {
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		if b.Get(col, r) == possible_num {
+		if b.Get(r, col) == possible_num {
 			return false
 		}
 	}

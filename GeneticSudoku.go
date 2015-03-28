@@ -19,16 +19,16 @@ const (
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
 	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 4
 
-	ITERATIONS          = 100
+	ITERATIONS          = 1000
 	STEPS_PER_ITERATION = 100
 
 	ERROR_MODIFIER = 3
 
 	CHROMOSOME_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
 
-	NUMBER_OF_ROWS  = 4
-	NUMBER_OF_COLS  = 4
-	NUMBER_OF_BOXES = 4
+	NUMBER_OF_ROWS  = 9
+	NUMBER_OF_COLS  = 9
+	NUMBER_OF_BOXES = 9
 
 	UNASSIGNED = 0
 )
@@ -47,12 +47,11 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	original = BoardParser("boards/4x4/small.txt")
+	original = BoardParser("boards/9x9/board.txt")
 
 	fmt.Println("===================")
 	original.Print()
 	fmt.Println("===================")
-
 
 	population := getRandomPopulation()
 
