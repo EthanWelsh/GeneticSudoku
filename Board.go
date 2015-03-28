@@ -363,36 +363,6 @@ func GetCellByRow(index int) (convertedIndex int) {
 	return (r * NUMBER_OF_ROWS) + c
 }
 
-// Given an index, will return the R and C values for the index element in the board, counting by col
-func GetCellByCol(index int) (convertedIndex int) {
-	c := index / NUMBER_OF_COLS
-	r := index % NUMBER_OF_ROWS
-
-	return (r * NUMBER_OF_ROWS) + c
-}
-
-// Given an index, will return the R and C values for the index element in the board, counting by col
-// Boxes are read likeso:
-// 0  1  2   9  10 11
-// 3  4  5   12 13 14
-// 6  7  8   15 16 17
-func GetCellByBox(index int) (convertedIndex int) {
-
-	boxNum := index / NUMBER_OF_ROWS // 0-8
-
-	sizeOfBox := int(math.Sqrt(NUMBER_OF_ROWS))
-
-	startR := (boxNum * sizeOfBox) / NUMBER_OF_ROWS
-	startC := (boxNum % sizeOfBox) * sizeOfBox
-
-	index = index % NUMBER_OF_ROWS
-
-	r := startR + index/sizeOfBox
-	c := startC + index%sizeOfBox
-
-	return (r * NUMBER_OF_ROWS) + c
-}
-
 // Prints the board!
 func (b *Board) Print() {
 
@@ -435,4 +405,38 @@ func (b *Board) Get(r int, c int) uint8 {
 // Sets a given location on the board to a certain integer
 func (b *Board) Set(r int, c int, value uint8) {
 	b.board.genes[(r*NUMBER_OF_ROWS)+c] = value
+}
+
+func GetRandomRow(rowNum int) []uint8 {
+
+	var originalRow []uint8
+	numbersAlreadyInRow := make(map[uint8]bool)
+
+	// Get the original row and keep track of which numbers are used and can't be place again in the same row...
+	for indexIntoRow := 0; indexIntoRow < NUMBER_OF_COLS; indexIntoRow++ {
+		cellValue := original.Get(rowNum, indexIntoRow)
+		originalRow = append(originalRow, cellValue)
+		numbersAlreadyInRow[cellValue] = true
+	}
+
+	// For every position in the row
+	for positionInRow := 0; positionInRow < NUMBER_OF_COLS; positionInRow++ {
+
+		var numbersAvailableToBePlaced []uint8
+
+		for i := uint8(1); i <= NUMBER_OF_ROWS; i++ {
+			if _, numInRow := numbersAlreadyInRow[i]; !numInRow {
+				numbersAvailableToBePlaced = append(numbersAvailableToBePlaced, i)
+			}
+		}
+
+		if originalRow[positionInRow] == 0 {
+			randomIndex := randomInt(0, len(numbersAvailableToBePlaced)-1)
+			randomValue := numbersAvailableToBePlaced[randomIndex]
+			numbersAlreadyInRow[randomValue] = true
+			originalRow[positionInRow] = randomValue
+		}
+	}
+
+	return originalRow
 }
