@@ -1,6 +1,8 @@
 package main
+
 import (
 	"math/rand"
+	//"fmt"
 )
 
 type Chromosome struct {
@@ -38,12 +40,10 @@ func Mutate(original Board, population []Chromosome, chanceToModifyPopulation fl
 		randomRow := GetRandomRow(modifiedRow)
 		startIndex := modifiedRow * NUMBER_OF_ROWS
 
+		// add the mutation to the chromosome
 		for i := 0; i < NUMBER_OF_COLS; i++ {
 			population[modifiedChromosome].genes[startIndex+i] = randomRow[i]
 		}
-
-		// add the mutation to the chromosome
-
 	}
 
 	return population
@@ -81,16 +81,6 @@ func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 
 	return
 
-}
-
-// Given a number, will provide the gene that maps to that number
-func geneToNum(n uint8) uint8 {
-
-	if n < 10 {
-		return n
-	} else {
-		return 0
-	}
 }
 
 // Returns the string representation of a particular chromosome

@@ -30,7 +30,7 @@ func Init() (new_board Board) {
 }
 
 // Reads a board in from file and returns it
-func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
+func BoardParser(filename string) (board Board) {
 	board = Init()
 	data, err := ioutil.ReadFile(filename)
 
@@ -58,19 +58,16 @@ func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
 		counter++
 	}
 
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
+	/*for r := 0; r < NUMBER_OF_ROWS; r++ {
 		for c := 0; c < NUMBER_OF_COLS; c++ {
 			if board.Get(r, c) == UNASSIGNED {
 				possibles := board.PossibleCells(r, c)
-
 				if len(possibles) == 1 {
 					board.Set(r, c, possibles[0])
-				} else {
-					genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
 				}
 			}
 		}
-	}
+	}*/
 
 	return
 }
@@ -296,10 +293,13 @@ func (b *Board) IsComplete() bool {
 
 // Checks to see if the board represents a complete and correct solution
 func (b *Board) IsCorrect() bool {
-	return b.Grade() == (REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+ // complete rows
-		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+ // complete cols
-		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)+ // complete boxes
-		((NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES)*ERROR_MODIFIER) // lack of errors
+
+	perfectScore := float64((REWARD_FOR_COMPLETE_BOARD_ELEMENT * NUMBER_OF_ROWS) + // complete rows
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT * NUMBER_OF_COLS) + // complete cols
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT * NUMBER_OF_BOXES) + // complete boxes
+		((NUMBER_OF_ROWS + NUMBER_OF_COLS + NUMBER_OF_BOXES) * ERROR_MODIFIER)) // lack of errors
+
+	return b.Grade() == perfectScore
 }
 
 // Get all assigned numbers in a given row
@@ -352,15 +352,6 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 	}
 
 	return
-}
-
-// Given an index, will return the R and C values for the index element in the board, counting by row
-func GetCellByRow(index int) (convertedIndex int) {
-
-	r := index / NUMBER_OF_ROWS
-	c := index % NUMBER_OF_COLS
-
-	return (r * NUMBER_OF_ROWS) + c
 }
 
 // Prints the board!
@@ -431,7 +422,7 @@ func GetRandomRow(rowNum int) []uint8 {
 		}
 
 		if originalRow[positionInRow] == 0 {
-			randomIndex := randomInt(0, len(numbersAvailableToBePlaced)-1)
+			randomIndex := randomInt(0, len(numbersAvailableToBePlaced))
 			randomValue := numbersAvailableToBePlaced[randomIndex]
 			numbersAlreadyInRow[randomValue] = true
 			originalRow[positionInRow] = randomValue

@@ -10,13 +10,11 @@ import (
 )
 
 const (
-	CROSSOVER_RATE                            = .3
-	POPULATION_SIZE                           = 1000
-	NUMBER_OF_CHANCES_FOR_UNASSIGNED          = 0 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
-	NUMBER_OF_RETRIES_BEFORE_POPULATION_RESET = 30
+	CHANCE_TO_MUTATE_A_POPULATION = .90
+	CROSSOVER_RATE                = .7
 
-	PERCENT_OF_CHROMOSOMES_MUTATED_PER_POPULATION = 10.00
-	CHANCE_TO_MUTATE_A_POPULATION                 = 1.00 - (PERCENT_OF_CHROMOSOMES_MUTATED_PER_POPULATION/100.00)
+	POPULATION_SIZE                           = 1000
+	NUMBER_OF_RETRIES_BEFORE_POPULATION_RESET = 30
 
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
 	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 4
@@ -24,13 +22,13 @@ const (
 	ITERATIONS          = 100
 	STEPS_PER_ITERATION = 100
 
-	ERROR_MODIFIER = 5
+	ERROR_MODIFIER = 3
 
 	CHROMOSOME_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
 
-	NUMBER_OF_ROWS  = 9
-	NUMBER_OF_COLS  = 9
-	NUMBER_OF_BOXES = 9
+	NUMBER_OF_ROWS  = 4
+	NUMBER_OF_COLS  = 4
+	NUMBER_OF_BOXES = 4
 
 	UNASSIGNED = 0
 )
@@ -39,8 +37,6 @@ var boardCache map[string]Board
 var scoreCache map[string]float64
 
 var original Board
-
-var mutableGenes []int
 
 func main() {
 
@@ -51,12 +47,16 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	original, mutableGenes = BoardParser("boards/9x9/board.txt")
+	original = BoardParser("boards/4x4/small.txt")
+
+	fmt.Println("===================")
+	original.Print()
+	fmt.Println("===================")
+
 
 	population := getRandomPopulation()
 
-	previousScore := uint64(0)
-	numberOfSubsequentMaxValues := 0
+
 
 	for i := 0; i < ITERATIONS; i++ {
 
@@ -81,21 +81,6 @@ func main() {
 		} else {
 			b.Print()
 			avg, max, min := getPopulationStats(population)
-
-			if max != previousScore {
-				previousScore = max
-				numberOfSubsequentMaxValues = 0
-			} else {
-				if numberOfSubsequentMaxValues > NUMBER_OF_RETRIES_BEFORE_POPULATION_RESET {
-					fmt.Println("*************************")
-					fmt.Println("**********RESET**********")
-					fmt.Println("*************************")
-					population = getRandomPopulation()
-					i = 0
-				}
-				numberOfSubsequentMaxValues++
-			}
-
 			fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
 
 			population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MUTATE_A_POPULATION)
@@ -175,7 +160,7 @@ func getBoardFromChromosome(chromosome Chromosome) Board {
 
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {
-				board.Set(r, c, geneToNum(chromosome.genes[index]))
+				board.Set(r, c, chromosome.genes[index])
 				index++
 			}
 		}
