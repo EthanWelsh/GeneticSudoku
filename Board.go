@@ -59,18 +59,30 @@ func BoardParser(filename string) (board Board) {
 	}
 
 
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			if board.Get(r, c) == UNASSIGNED {
-				possibles := board.PossibleCells(r, c)
-				if len(possibles) == 1 {
-					board.Set(r, c, possibles[0])
+
+
+	return
+}
+
+func (b *Board) FillInObvious() {
+
+	changeMade := true
+
+	for changeMade == true {
+	    changeMade = false
+		for r := 0; r < NUMBER_OF_ROWS; r++ {
+			for c := 0; c < NUMBER_OF_COLS; c++ {
+				if b.Get(r, c) == UNASSIGNED {
+					possibles := b.PossibleCells(r, c)
+					if len(possibles) == 1 {
+						b.Set(r, c, possibles[0])
+						changeMade = true
+					}
 				}
 			}
 		}
 	}
 
-	return
 }
 
 // Grade the given board on its completion

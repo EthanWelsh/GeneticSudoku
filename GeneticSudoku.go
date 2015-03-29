@@ -19,7 +19,7 @@ const (
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
 	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 4
 
-	ITERATIONS          = 1000
+	ITERATIONS          = 100000
 	STEPS_PER_ITERATION = 100
 
 	ERROR_MODIFIER = 3
@@ -53,9 +53,12 @@ func main() {
 	original.Print()
 	fmt.Println("===================")
 
+	original.FillInObvious()
+
 	population := getRandomPopulation()
 
-
+	previousScore := uint64(0)
+	numberOfSubsequentMaxValues := 0
 
 	for i := 0; i < ITERATIONS; i++ {
 
@@ -80,6 +83,21 @@ func main() {
 		} else {
 			b.Print()
 			avg, max, min := getPopulationStats(population)
+
+			if max != previousScore {
+				previousScore = max
+				numberOfSubsequentMaxValues = 0
+			} else {
+				if numberOfSubsequentMaxValues > NUMBER_OF_RETRIES_BEFORE_POPULATION_RESET {
+					fmt.Println("*************************")
+					fmt.Println("**********RESET**********")
+					fmt.Println("*************************")
+					population = getRandomPopulation()
+					i = 0
+				}
+				numberOfSubsequentMaxValues++
+			}
+
 			fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
 
 			population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MUTATE_A_POPULATION)
