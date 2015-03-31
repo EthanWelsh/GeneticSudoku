@@ -10,18 +10,19 @@ import (
 )
 
 const (
-	CHANCE_TO_MUTATE_A_POPULATION    = .97
-	CROSSOVER_RATE                   = .7
-	POPULATION_SIZE                  = 1000
-	NUMBER_OF_CHANCES_FOR_UNASSIGNED = 0 // When a random chromosome is generated or a mutation occurs, how many chances should there be that the number will be UNASSIGNED?
+	CHANCE_TO_MUTATE_A_POPULATION = .90
+	CROSSOVER_RATE                = .7
+
+	POPULATION_SIZE                           = 1000
+	NUMBER_OF_RETRIES_BEFORE_POPULATION_RESET = 30
 
 	REWARD_FOR_COMPLETE_BOARD_ELEMENT       = 3
 	REWARD_FOR_MINIMUM_NUM_OF_AVAILABLE_POS = 4
 
-	ITERATIONS          = 100
+	ITERATIONS          = 100000
 	STEPS_PER_ITERATION = 100
 
-	ERROR_MODIFIER = 5
+	ERROR_MODIFIER = 3
 
 	CHROMOSOME_SIZE = NUMBER_OF_ROWS * NUMBER_OF_COLS
 
@@ -37,8 +38,6 @@ var scoreCache map[string]float64
 
 var original Board
 
-var mutableGenes []int
-
 func main() {
 
 	rand.Seed(int64(time.Now().UnixNano()))
@@ -48,22 +47,18 @@ func main() {
 
 	defer un(trace("BASELINE"))
 
-	original, mutableGenes = BoardParser("src/main/boards/9x9/board.txt")
+	original = BoardParser("boards/9x9/board.txt")
 
-	population := make([]Chromosome, POPULATION_SIZE)
+	fmt.Println("===================")
+	original.Print()
+	fmt.Println("===================")
 
-	fmt.Println("Generating", POPULATION_SIZE, "random solutions. This may take a while...")
+	original.FillInObvious()
 
-	// Generate random partial solutions to the given board
-	for i := range population {
-		population[i] = GetRandomChromosome(&original)
+	population := getRandomPopulation()
 
-		if i%(POPULATION_SIZE/10) == 0 {
-			fmt.Print((float64(i)/POPULATION_SIZE)*100.00, "%    ")
-		}
-	}
-
-	fmt.Println("100%\nDone generating solutions! Starting evolution...")
+	previousScore := uint64(0)
+	numberOfSubsequentMaxValues := 0
 
 	for i := 0; i < ITERATIONS; i++ {
 
@@ -88,11 +83,44 @@ func main() {
 		} else {
 			b.Print()
 			avg, max, min := getPopulationStats(population)
+
+			if max != previousScore {
+				previousScore = max
+				numberOfSubsequentMaxValues = 0
+			} else {
+				if numberOfSubsequentMaxValues > NUMBER_OF_RETRIES_BEFORE_POPULATION_RESET {
+					fmt.Println("*************************")
+					fmt.Println("**********RESET**********")
+					fmt.Println("*************************")
+					population = getRandomPopulation()
+					i = 0
+				}
+				numberOfSubsequentMaxValues++
+			}
+
 			fmt.Printf("%d).\t\t\tAVG: %.2f\t\tMAX: %d\t\tMIN: %d\n", i*STEPS_PER_ITERATION, avg, max, min)
 
 			population = evolve(population, STEPS_PER_ITERATION, CHANCE_TO_MUTATE_A_POPULATION)
 		}
 	}
+}
+
+func getRandomPopulation() []Chromosome {
+	population := make([]Chromosome, POPULATION_SIZE)
+
+	fmt.Println("Generating", POPULATION_SIZE, "random solutions. This may take a while...")
+
+	// Generate random partial solutions to the given board
+	for i := range population {
+		population[i] = GetRandomChromosome(&original)
+
+		if i%(POPULATION_SIZE/10) == 0 {
+			fmt.Print((float64(i)/POPULATION_SIZE)*100.00, "%    ")
+		}
+	}
+
+	fmt.Println("100%\nDone generating solutions! Starting evolution...")
+	return population
 }
 
 // Performs reproduction and mutations for a given number of iterations and returns the resulting population
@@ -149,7 +177,7 @@ func getBoardFromChromosome(chromosome Chromosome) Board {
 
 		for r := 0; r < NUMBER_OF_ROWS; r++ {
 			for c := 0; c < NUMBER_OF_COLS; c++ {
-				board.Set(r, c, geneToNum(chromosome.genes[index]))
+				board.Set(r, c, chromosome.genes[index])
 				index++
 			}
 		}
@@ -192,13 +220,12 @@ func getPopulationStats(population []Chromosome) (avg float64, max uint64, min u
 
 // Generates a random integer between min and max (inclusive)
 func randomInt(min int, max int) int {
+
+	if min == max {
+		return min
+	}
+
 	return rand.Intn(max) + min
-}
-
-// Generates a random float between min and max (inclusive)
-func randomFloat(min float64, max float64) float64 {
-
-	return rand.Float64()*(max-min) + min
 }
 
 // temporary timing function

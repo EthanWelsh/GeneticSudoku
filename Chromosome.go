@@ -1,5 +1,10 @@
 package main
 
+import (
+	"math/rand"
+	//"fmt"
+)
+
 type Chromosome struct {
 	genes [CHROMOSOME_SIZE]uint8
 }
@@ -26,16 +31,19 @@ func Mutate(original Board, population []Chromosome, chanceToModifyPopulation fl
 		return population
 	}
 
-	for randomFloat(0, 1) < chanceToModifyPopulation { // if you decided to mutate...
+	for rand.Float64() < chanceToModifyPopulation { // if you decided to mutate...
 
 		modifiedChromosome := randomInt(0, len(population)) // pick a random chromosome to modify
 
-		modifiedGene := randomInt(0, len(mutableGenes)) // pick a random gene within that chromosome to modify
+		modifiedRow := randomInt(0, NUMBER_OF_ROWS-1)
 
-		rand := randomInt(1, NUMBER_OF_ROWS+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
+		randomRow := GetRandomRow(modifiedRow)
+		startIndex := modifiedRow * NUMBER_OF_ROWS
 
 		// add the mutation to the chromosome
-		population[modifiedChromosome].genes[modifiedGene] = geneToNum(uint8(rand))
+		for i := 0; i < NUMBER_OF_COLS; i++ {
+			population[modifiedChromosome].genes[startIndex+i] = randomRow[i]
+		}
 	}
 
 	return population
@@ -44,27 +52,16 @@ func Mutate(original Board, population []Chromosome, chanceToModifyPopulation fl
 // Will perform a crossover operation between two chromosomes
 func MateChromosome(a Chromosome, b Chromosome) (Chromosome, Chromosome) {
 
-	if randomFloat(0, 1) < CROSSOVER_RATE {
+	if rand.Float64() < CROSSOVER_RATE {
 
-		rowColBox := randomInt(0, 2)
-		crossoverAt := randomInt(1, 80)
+		rowToSwap := randomInt(0, NUMBER_OF_ROWS-1) // pick row to swap
 
-		indexToModify := 0
-
-		for i := crossoverAt; i < CHROMOSOME_SIZE; i++ {
-
-			if rowColBox == 0 { // ROWS
-				indexToModify = GetCellByRow(crossoverAt)
-			} else if rowColBox == 1 { //COLS
-				indexToModify = GetCellByCol(crossoverAt)
-			} else { // BOXES
-				indexToModify = GetCellByBox(crossoverAt)
-			}
-
-			a.genes[indexToModify] = b.genes[indexToModify]
-			b.genes[indexToModify] = a.genes[indexToModify]
-
+		for c := 0; c < NUMBER_OF_COLS; c++ { // and swap it!
+			temp := a.genes[(rowToSwap*NUMBER_OF_ROWS)+c]
+			a.genes[(rowToSwap*NUMBER_OF_ROWS)+c] = b.genes[(rowToSwap*NUMBER_OF_ROWS)+c]
+			b.genes[(rowToSwap*NUMBER_OF_ROWS)+c] = temp
 		}
+
 	}
 	return a, b
 }
@@ -73,30 +70,17 @@ func MateChromosome(a Chromosome, b Chromosome) (Chromosome, Chromosome) {
 func GetRandomChromosome(b *Board) (chromosome Chromosome) {
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			if b.Get(r, c) == UNASSIGNED { // for every unassigned cell in the board
 
-				rand := randomInt(1, NUMBER_OF_ROWS+NUMBER_OF_CHANCES_FOR_UNASSIGNED) // randomly assign a number or set unassigned
-				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = geneToNum(uint8(rand))
+		randomRow := GetRandomRow(r)
+		startIndex := r * NUMBER_OF_ROWS
 
-			} else {
-				chromosome.genes[c+(r*NUMBER_OF_ROWS)] = geneToNum(b.Get(r, c))
-			}
+		for i := 0; i < NUMBER_OF_COLS; i++ {
+			chromosome.genes[startIndex+i] = randomRow[i]
 		}
 	}
 
-	return chromosome
+	return
 
-}
-
-// Given a number, will provide the gene that maps to that number
-func geneToNum(n uint8) uint8 {
-
-	if n < 10 {
-		return n
-	} else {
-		return 0
-	}
 }
 
 // Returns the string representation of a particular chromosome

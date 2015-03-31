@@ -30,7 +30,7 @@ func Init() (new_board Board) {
 }
 
 // Reads a board in from file and returns it
-func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
+func BoardParser(filename string) (board Board) {
 	board = Init()
 	data, err := ioutil.ReadFile(filename)
 
@@ -58,19 +58,31 @@ func BoardParser(filename string) (board Board, genesThatCanBeMutated []int) {
 		counter++
 	}
 
-	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		for c := 0; c < NUMBER_OF_COLS; c++ {
-			possibles := board.PossibleCells(r, c)
 
-			if len(possibles) == 1 {
-				board.Set(r, c, possibles[0])
-			} else {
-				genesThatCanBeMutated = append(genesThatCanBeMutated, col+(row*9))
+
+
+	return
+}
+
+func (b *Board) FillInObvious() {
+
+	changeMade := true
+
+	for changeMade == true {
+	    changeMade = false
+		for r := 0; r < NUMBER_OF_ROWS; r++ {
+			for c := 0; c < NUMBER_OF_COLS; c++ {
+				if b.Get(r, c) == UNASSIGNED {
+					possibles := b.PossibleCells(r, c)
+					if len(possibles) == 1 {
+						b.Set(r, c, possibles[0])
+						changeMade = true
+					}
+				}
 			}
 		}
 	}
 
-	return
 }
 
 // Grade the given board on its completion
@@ -142,7 +154,7 @@ func (b *Board) isUniqueRow(r int) bool {
 func (b *Board) uniqueColumns(possible_num uint8, col int) bool {
 
 	for r := 0; r < NUMBER_OF_ROWS; r++ {
-		if b.Get(col, r) == possible_num {
+		if b.Get(r, col) == possible_num {
 			return false
 		}
 	}
@@ -294,10 +306,13 @@ func (b *Board) IsComplete() bool {
 
 // Checks to see if the board represents a complete and correct solution
 func (b *Board) IsCorrect() bool {
-	return b.Grade() == (REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_ROWS)+ // complete rows
-		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_COLS)+ // complete cols
-		(REWARD_FOR_COMPLETE_BOARD_ELEMENT*NUMBER_OF_BOXES)+ // complete boxes
-		((NUMBER_OF_ROWS+NUMBER_OF_COLS+NUMBER_OF_BOXES)*ERROR_MODIFIER) // lack of errors
+
+	perfectScore := float64((REWARD_FOR_COMPLETE_BOARD_ELEMENT * NUMBER_OF_ROWS) + // complete rows
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT * NUMBER_OF_COLS) + // complete cols
+		(REWARD_FOR_COMPLETE_BOARD_ELEMENT * NUMBER_OF_BOXES) + // complete boxes
+		((NUMBER_OF_ROWS + NUMBER_OF_COLS + NUMBER_OF_BOXES) * ERROR_MODIFIER)) // lack of errors
+
+	return b.Grade() == perfectScore
 }
 
 // Get all assigned numbers in a given row
@@ -352,45 +367,6 @@ func (b *Board) GetNumbersInBox(r int, c int) (box []uint8) {
 	return
 }
 
-// Given an index, will return the R and C values for the index element in the board, counting by row
-func GetCellByRow(index int) (convertedIndex int) {
-
-	r := index / NUMBER_OF_ROWS
-	c := index % NUMBER_OF_COLS
-
-	return (r * NUMBER_OF_ROWS) + c
-}
-
-// Given an index, will return the R and C values for the index element in the board, counting by col
-func GetCellByCol(index int) (convertedIndex int) {
-	c := index / NUMBER_OF_COLS
-	r := index % NUMBER_OF_ROWS
-
-	return (r * NUMBER_OF_ROWS) + c
-}
-
-// Given an index, will return the R and C values for the index element in the board, counting by col
-// Boxes are read likeso:
-// 0  1  2   9  10 11
-// 3  4  5   12 13 14
-// 6  7  8   15 16 17
-func GetCellByBox(index int) (convertedIndex int) {
-
-	boxNum := index / NUMBER_OF_ROWS // 0-8
-
-	sizeOfBox := int(math.Sqrt(NUMBER_OF_ROWS))
-
-	startR := (boxNum * sizeOfBox) / NUMBER_OF_ROWS
-	startC := (boxNum % sizeOfBox) * sizeOfBox
-
-	index = index % NUMBER_OF_ROWS
-
-	r := startR + index/sizeOfBox
-	c := startC + index%sizeOfBox
-
-	return (r * NUMBER_OF_ROWS) + c
-}
-
 // Prints the board!
 func (b *Board) Print() {
 
@@ -427,10 +403,44 @@ func containsDuplicates(arr []uint8) bool {
 
 // Returns the integer at the given location of the board
 func (b *Board) Get(r int, c int) uint8 {
-	return b.board.genes[c+(r*NUMBER_OF_ROWS)]
+	return b.board.genes[(r*NUMBER_OF_ROWS)+c]
 }
 
 // Sets a given location on the board to a certain integer
 func (b *Board) Set(r int, c int, value uint8) {
-	b.board.genes[c+(r*NUMBER_OF_ROWS)] = value
+	b.board.genes[(r*NUMBER_OF_ROWS)+c] = value
+}
+
+func GetRandomRow(rowNum int) []uint8 {
+
+	var originalRow []uint8
+	numbersAlreadyInRow := make(map[uint8]bool)
+
+	// Get the original row and keep track of which numbers are used and can't be place again in the same row...
+	for indexIntoRow := 0; indexIntoRow < NUMBER_OF_COLS; indexIntoRow++ {
+		cellValue := original.Get(rowNum, indexIntoRow)
+		originalRow = append(originalRow, cellValue)
+		numbersAlreadyInRow[cellValue] = true
+	}
+
+	// For every position in the row
+	for positionInRow := 0; positionInRow < NUMBER_OF_COLS; positionInRow++ {
+
+		var numbersAvailableToBePlaced []uint8
+
+		for i := uint8(1); i <= NUMBER_OF_ROWS; i++ {
+			if _, numInRow := numbersAlreadyInRow[i]; !numInRow {
+				numbersAvailableToBePlaced = append(numbersAvailableToBePlaced, i)
+			}
+		}
+
+		if originalRow[positionInRow] == 0 {
+			randomIndex := randomInt(0, len(numbersAvailableToBePlaced))
+			randomValue := numbersAvailableToBePlaced[randomIndex]
+			numbersAlreadyInRow[randomValue] = true
+			originalRow[positionInRow] = randomValue
+		}
+	}
+
+	return originalRow
 }
